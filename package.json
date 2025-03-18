@@ -1,0 +1,29 @@
+{
+  "name": "shodan-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server that exposes Shodan APIs",
+  "main": "build/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js",
+    "dev": "ts-node-esm src/index.ts"
+  },
+  "keywords": [
+    "mcp",
+    "shodan",
+    "api"
+  ],
+  "author": "Halil Ozturkci",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "node-fetch": "^3.3.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
