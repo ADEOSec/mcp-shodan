@@ -6,7 +6,7 @@ A Model Context Protocol (MCP) server that provides access to Shodan's powerful 
 
 ## About ADEO Cybersecurity Services
 
-ADEO Cybersecurity Services specializes in providing advanced security solutions and tools for cybersecurity professionals. This Shodan MCP Server is part of our commitment to enhancing cybersecurity capabilities through innovative tools and integrations with industry-leading security data sources.
+ADEO Cybersecurity Services specializes in providing advanced security services. This Shodan MCP Server is part of our commitment to enhancing cybersecurity capabilities through innovative tools and integrations with industry-leading security data sources.
 
 ## Features
 
@@ -429,4 +429,4 @@ Website: [https://www.adeosecurity.com](https://www.adeosecurity.com)
 
 ---
 
-Copyright © 2025 ADEO Cybersecurity Services. All rights reserved.
+Copyright © 2025 ADEO Cybersecurity Services. 
