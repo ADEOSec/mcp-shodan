@@ -1816,667 +1816,688 @@ server.tool(
 );
 
 
-// Prompt Implementations
+// Consolidated Cybersecurity Analysis Workflow Prompts
+
+// Asset Discovery and Reconnaissance Prompt
 server.prompt(
-  "security-assessment",
+  "asset-discovery",
+  "Discover and analyze internet-facing assets and infrastructure",
   {
-    target: z.string().describe("IP address or domain to analyze"),
-    depth: z.string().optional().describe("Analysis depth (basic, standard, deep)")
+    target: z.string().describe("Domain, IP address, or organization name to analyze"),
+    depth: z.enum(["basic", "comprehensive"]).optional().describe("Depth of reconnaissance")
   },
-  async (args) => {
-    const depth = args.depth || "standard";
-    const target = args.target;
-    
-    try {
-      // Fetch host information
-      const hostInfo = await shodanApiRequest<ShodanHostInfo>(`/shodan/host/${target}`, {
-        history: depth === "deep" ? "true" : "false"
-      });
+  (args) => {
+    const comprehensive = args.depth === "comprehensive";
       
-      return {
-        messages: [{
-          role: "user",
-          content: {
-            type: "text",
-            text: `Analyze the security posture of ${target} with the following information:\n\n${JSON.stringify(hostInfo, null, 2)}`
-          }
-        }]
-      };
-    } catch (error) {
-      throw new Error(`Failed to generate security assessment: ${error}`);
-    }
-  }
-);
+    return {
+      messages: [{
+        role: "user",
+        content: {
+          type: "text",
+          text: `Perform a ${args.depth || "basic"} asset discovery and infrastructure mapping for ${args.target}:
 
-server.prompt(
-  "vuln-analysis",
-  {
-    target: z.string().describe("IP address to analyze"),
-    timeframe: z.string().optional().describe("History timeframe to consider")
-  },
-  async (args) => {
-    const target = args.target;
-    
-    try {
-      // Fetch host information with vulnerabilities
-      const hostInfo = await shodanApiRequest<ShodanHostInfo>(`/shodan/host/${target}`, {
-        history: "true"
-      });
-      
-      // Extract vulnerability information
-      const vulns = hostInfo.data?.flatMap(service => service.vulns || []) || [];
-      
-      return {
-        messages: [{
-          role: "user",
-          content: {
-            type: "text",
-            text: `Analyze the vulnerabilities found for ${target}:\n\n${JSON.stringify(vulns, null, 2)}`
-          }
-        }]
-      };
-    } catch (error) {
-      throw new Error(`Failed to generate vulnerability analysis: ${error}`);
-    }
-  }
-);
+1. Initial Reconnaissance
+   - If target is a domain:
+     * Use domain-info tool with domain="${args.target}"
+     * Document DNS records and subdomains
+   - If target is an IP:
+     * Use host-info tool with ip="${args.target}" and history=${comprehensive ? "true" : "false"}
+     * Use reverse-dns tool with ips="${args.target}"
+   - If target is an organization name:
+     * Use search-host tool with query="org:\\"${args.target}\\""
 
-// Enhanced Vulnerability Assessment Prompt
-server.prompt(
-  "enhanced-vuln-assessment",
-  "Perform detailed vulnerability assessment with severity filtering",
-  {
-    target: z.string().describe("IP address or domain to analyze"),
-    severityThreshold: z.string().optional().describe("Minimum severity level to include (low, medium, high, critical)"),
-    priorityLevel: z.string().optional().describe("Priority level for remediation (low, medium, high)")
-  },
-  async (args) => {
-    const target = args.target;
-    const severityThreshold = args.severityThreshold || "low";
-    
-    try {
-      const hostInfo = await shodanApiRequest<ShodanHostInfo>(`/shodan/host/${target}`, {
-        history: "true"
-      });
-      
-      // Extract and filter vulnerabilities based on severity
-      const vulns = hostInfo.data?.flatMap(service => service.vulns || [])
-        .filter(vuln => shouldIncludeVulnerability(vuln, severityThreshold)) || [];
-      
-      return {
-        messages: [{
-          role: "user",
-          content: {
-            type: "text",
-            text: `Perform a detailed vulnerability assessment for ${target} with severity threshold ${severityThreshold}:\n\n` +
-                  `Vulnerabilities found: ${JSON.stringify(vulns, null, 2)}\n\n` +
-                  `Please analyze these vulnerabilities and provide:\n` +
-                  `1. Severity ranking\n` +
-                  `2. Potential impact analysis\n` +
-                  `3. Recommended remediation steps\n` +
-                  `4. Prioritization based on business impact`
-          }
-        }]
-      };
-    } catch (error) {
-      throw new Error(`Failed to generate enhanced vulnerability assessment: ${error}`);
-    }
-  }
-);
+2. Asset Enumeration
+   - Document discovered hosts and IP addresses
+   - Identify open ports and services
+   - Catalog geographical distribution
+   - Note organizations and ASNs
 
-// Network Topology Analysis Prompt
-server.prompt(
-  "network-topology",
-  "Analyze network topology and suggest visualizations",
-  {
-    target: z.string().describe("IP range or domain to analyze"),
-    scanType: z.string().optional().describe("Type of scan (basic, detailed, comprehensive)"),
-    compareWithPrevious: z.string().optional().describe("Compare with previous scan results (true/false)")
-  },
-  async (args) => {
-    const target = args.target;
-    const scanType = args.scanType || "basic";
-    const compareWithPrevious = args.compareWithPrevious === "true";
-    
-    try {
-      const hostInfo = await shodanApiRequest<ShodanHostInfo>(`/shodan/host/${target}`, {
-        history: compareWithPrevious ? "true" : "false"
-      });
-      
-      return {
-        messages: [{
-          role: "user",
-          content: {
-            type: "text",
-            text: `Analyze the network topology for ${target}:\n\n` +
-                  `Host Information: ${JSON.stringify(hostInfo, null, 2)}\n\n` +
-                  `Please provide:\n` +
-                  `1. Network structure visualization suggestions\n` +
-                  `2. Identified entry points\n` +
-                  `3. Network segmentation analysis\n` +
-                  `4. Security recommendations based on topology`
-          }
-        }]
-      };
-    } catch (error) {
-      throw new Error(`Failed to generate network topology analysis: ${error}`);
-    }
-  }
-);
+3. Service Analysis
+   - Identify exposed service types and versions
+   - Document technologies in use (products, software)
+   - Note unusual or potentially vulnerable services
+   - Look for default configurations or exposed interfaces
 
-// IoT Device Discovery Prompt
-server.prompt(
-  "iot-discovery",
-  "Discover and analyze IoT devices in the network",
-  {
-    target: z.string().describe("Network range to scan for IoT devices"),
-    deviceType: z.string().optional().describe("Specific type of IoT device to look for"),
-    manufacturer: z.string().optional().describe("Specific manufacturer to filter by"),
-    protocol: z.string().optional().describe("Specific protocol to search for")
-  },
-  async (args) => {
-    try {
-      const hostInfo = await shodanApiRequest<ShodanHostInfo>(`/shodan/host/${args.target}`, {
-        history: "false"
-      });
-      
-      // Filter for IoT-related services and protocols
-      const iotServices = hostInfo.data?.filter(service => 
-        isIoTService(service, args.deviceType, args.manufacturer, args.protocol)
-      ) || [];
-      
-      return {
-        messages: [{
-          role: "user",
-          content: {
-            type: "text",
-            text: `Analyze IoT devices found in network ${args.target}:\n\n` +
-                  `Discovered devices: ${JSON.stringify(iotServices, null, 2)}\n\n` +
-                  `Please provide:\n` +
-                  `1. Device categorization\n` +
-                  `2. Security assessment for each device type\n` +
-                  `3. Common vulnerabilities for identified devices\n` +
-                  `4. Security best practices for discovered device types`
-          }
-        }]
-      };
-    } catch (error) {
-      throw new Error(`Failed to generate IoT device discovery report: ${error}`);
-    }
-  }
-);
+4. Security Assessment
+   - Highlight potential security exposures
+   - Identify systems with known vulnerabilities
+   - Note outdated software versions
+   - Document unusual port or service combinations
 
-// Security Posture Evaluation Prompt
-server.prompt(
-  "security-posture",
-  "Evaluate security posture against compliance frameworks",
-  {
-    target: z.string().describe("Target network or domain to evaluate"),
-    complianceFramework: z.string().optional().describe("Compliance framework to evaluate against (NIST, ISO, etc.)"),
-    includeRemediation: z.string().optional().describe("Include detailed remediation steps (true/false)")
-  },
-  async (args) => {
-    try {
-      const hostInfo = await shodanApiRequest<ShodanHostInfo>(`/shodan/host/${args.target}`, {
-        history: "true"
-      });
-      
-      return {
-        messages: [{
-          role: "user",
-          content: {
-            type: "text",
-            text: `Evaluate security posture for ${args.target} against ${args.complianceFramework || 'general security best practices'}:\n\n` +
-                  `Host Information: ${JSON.stringify(hostInfo, null, 2)}\n\n` +
-                  `Please provide:\n` +
-                  `1. Overall security rating\n` +
-                  `2. Compliance status\n` +
-                  `3. Critical findings\n` +
-                  `4. Remediation roadmap\n` +
-                  `5. Prioritized action items`
-          }
-        }]
-      };
-    } catch (error) {
-      throw new Error(`Failed to generate security posture evaluation: ${error}`);
-    }
-  }
-);
-
-// Threat Intelligence Integration Prompt
-server.prompt(
-  "threat-intel",
-  "Analyze threat intelligence and provide risk assessment",
-  {
-    target: z.string().describe("IP or domain to analyze"),
-    threatSource: z.string().optional().describe("Specific threat intelligence source to use"),
-    riskLevel: z.string().optional().describe("Minimum risk level to include (low, medium, high)")
-  },
-  async (args) => {
-    try {
-      const hostInfo = await shodanApiRequest<ShodanHostInfo>(`/shodan/host/${args.target}`, {
-        history: "true"
-      });
-      
-      return {
-        messages: [{
-          role: "user",
-          content: {
-            type: "text",
-            text: `Analyze threat intelligence for ${args.target}:\n\n` +
-                  `Host Information: ${JSON.stringify(hostInfo, null, 2)}\n\n` +
-                  `Please provide:\n` +
-                  `1. Known threat actors associated with observed patterns\n` +
-                  `2. Risk assessment based on current threat landscape\n` +
-                  `3. Potential attack vectors\n` +
-                  `4. Recommended security controls\n` +
-                  `5. Mitigation strategies`
-          }
-        }]
-      };
-    } catch (error) {
-      throw new Error(`Failed to generate threat intelligence analysis: ${error}`);
-    }
-  }
-);
-
-// Helper function to determine if vulnerability meets severity threshold
-function shouldIncludeVulnerability(vuln: any, threshold: string): boolean {
-  const severityLevels: { [key: string]: number } = {
-    'low': 1,
-    'medium': 2,
-    'high': 3,
-    'critical': 4
-  };
-  
-  const vulnSeverity = (vuln.severity?.toLowerCase() || 'low') as string;
-  return (severityLevels[vulnSeverity] || 1) >= (severityLevels[threshold] || 1);
-}
-
-// Helper function to identify IoT services
-function isIoTService(service: any, deviceType?: string, manufacturer?: string, protocol?: string): boolean {
-  // Common IoT ports and protocols
-  const iotPorts = [80, 443, 8080, 1883, 8883, 5683, 5684]; // HTTP(S), MQTT, CoAP
-  const iotProtocols = ['mqtt', 'coap', 'modbus', 'bacnet'];
-  
-  // Check if service matches specified filters
-  if (deviceType && !service.product?.toLowerCase().includes(deviceType.toLowerCase())) {
-    return false;
-  }
-  if (manufacturer && !service.product?.toLowerCase().includes(manufacturer.toLowerCase())) {
-    return false;
-  }
-  if (protocol && !service.transport?.toLowerCase().includes(protocol.toLowerCase())) {
-    return false;
-  }
-  
-  // Check if service is likely an IoT device
-  return iotPorts.includes(service.port) || 
-         iotProtocols.includes(service.transport?.toLowerCase()) ||
-         (service.tags || []).some((tag: string) => tag.toLowerCase().includes('iot'));
-}
-
-
-/**
- * CVE Lookup Tool
- * Get detailed information about a specific CVE
- */
-server.tool(
-  "cve-lookup",
-  "Get detailed information about a CVE",
-  {
-    cve: z.string().describe("CVE ID to look up (e.g., CVE-2021-44228)")
-  },
-  async ({ cve }) => {
-    try {
-      const data = await cvedbApiRequest<CVEDBVulnerability>(`/api/v1/cve/${cve}`);
-      
-      let formattedText = `## CVE Information: ${cve}\n\n`;
-      formattedText += `**Summary:** ${data.summary}\n\n`;
-      
-      formattedText += "### Severity Scores\n";
-      formattedText += `- **CVSS Score:** ${data.cvss} (v${data.cvss_version})\n`;
-      if (data.cvss_v2) formattedText += `- **CVSS v2:** ${data.cvss_v2}\n`;
-      if (data.cvss_v3) formattedText += `- **CVSS v3:** ${data.cvss_v3}\n`;
-      formattedText += `- **EPSS Score:** ${data.epss}\n`;
-      formattedText += `- **EPSS Ranking:** ${data.ranking_epss}\n`;
-      formattedText += `- **Known Exploited Vulnerability:** ${data.kev ? "Yes" : "No"}\n\n`;
-      
-      if (data.ransomware_campaign) {
-        formattedText += `### ⚠️ Ransomware Campaign\n${data.ransomware_campaign}\n\n`;
-      }
-      
-      formattedText += `### Proposed Action\n${data.propose_action}\n\n`;
-      
-      if (data.cpes.length > 0) {
-        formattedText += "### Affected Products (CPE)\n";
-        data.cpes.forEach((cpe: string) => {
-          formattedText += `- \`${cpe}\`\n`;
-        });
-        formattedText += "\n";
-      }
-      
-      if (data.references.length > 0) {
-        formattedText += "### References\n";
-        data.references.forEach((ref: string) => {
-          formattedText += `- ${ref}\n`;
-        });
-      }
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: formattedText
-          }
-        ]
-      };
-    } catch (error) {
-      const err = error as Error;
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Error looking up CVE: ${err.message}`
-          }
-        ],
-        isError: true
-      };
-    }
-  }
-);
-
-/**
- * CPE Vulnerability Search Tool
- * Search for vulnerabilities affecting a specific CPE
- */
-server.tool(
-  "cpe-vuln-search",
-  "Search for vulnerabilities by CPE",
-  {
-    cpe: z.string().describe("CPE 2.3 string to search for"),
-    minCvss: z.number().optional().describe("Minimum CVSS score (0-10)"),
-    maxResults: z.number().optional().describe("Maximum number of results to return")
-  },
-  async ({ cpe, minCvss = 0, maxResults = 50 }) => {
-    try {
-      const params: Record<string, string | number> = {
-        cpe,
-        limit: maxResults
-      };
-      
-      if (minCvss > 0) {
-        params.cvss = minCvss;
-      }
-      
-      const data = await cvedbApiRequest<CVEDBVulnerabilityList>("/api/v1/cpe/vulnerabilities", params);
-      
-      let formattedText = `## Vulnerabilities for ${cpe}\n\n`;
-      formattedText += `**Total Vulnerabilities Found:** ${data.total}\n\n`;
-      
-      if (data.matches.length > 0) {
-        // Sort by CVSS score descending
-        const sortedVulns = data.matches.sort((a: CVEDBVulnerability, b: CVEDBVulnerability) => b.cvss - a.cvss);
-        
-        sortedVulns.forEach((vuln: CVEDBVulnerability, index: number) => {
-          formattedText += `### ${index + 1}. ${vuln.cve}\n`;
-          formattedText += `**CVSS Score:** ${vuln.cvss} | **EPSS:** ${vuln.epss}\n`;
-          formattedText += `**Summary:** ${vuln.summary}\n`;
-          if (vuln.kev) formattedText += `⚠️ **Known Exploited Vulnerability**\n`;
-          if (vuln.ransomware_campaign) formattedText += `🚨 **Associated with Ransomware**\n`;
-          formattedText += "\n";
-        });
-      } else {
-        formattedText += "No vulnerabilities found matching the criteria.\n";
-      }
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: formattedText
-          }
-        ]
-      };
-    } catch (error) {
-      const err = error as Error;
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Error searching vulnerabilities: ${err.message}`
-          }
-        ],
-        isError: true
-      };
-    }
-  }
-);
-
-/**
- * Latest Vulnerabilities Tool
- * Get the most recently published vulnerabilities
- */
-server.tool(
-  "latest-vulns",
-  "Get latest published vulnerabilities",
-  {
-    days: z.number().optional().describe("Number of days to look back"),
-    minEpss: z.number().optional().describe("Minimum EPSS score (0-1)"),
-    kevOnly: z.boolean().optional().describe("Show only Known Exploited Vulnerabilities")
-  },
-  async ({ days = 7, minEpss = 0, kevOnly = false }) => {
-    try {
-      const params: Record<string, string | number> = {
-        days,
-        limit: 100
-      };
-      
-      if (minEpss > 0) {
-        params.epss = minEpss;
-      }
-      
-      if (kevOnly) {
-        params.kev = "true";
-      }
-      
-      const data = await cvedbApiRequest<CVEDBVulnerabilityList>("/api/v1/vulns/latest", params);
-      
-      let formattedText = "## Latest Vulnerabilities\n\n";
-      formattedText += `**Time Period:** Last ${days} days\n`;
-      formattedText += `**Total Found:** ${data.total}\n\n`;
-      
-      if (data.matches.length > 0) {
-        // Sort by EPSS score descending
-        const sortedVulns = data.matches.sort((a: CVEDBVulnerability, b: CVEDBVulnerability) => b.epss - a.epss);
-        
-        sortedVulns.forEach((vuln: CVEDBVulnerability, index: number) => {
-          formattedText += `### ${index + 1}. ${vuln.cve}\n`;
-          formattedText += `**Published:** ${vuln.published_time}\n`;
-          formattedText += `**EPSS Score:** ${vuln.epss} | **CVSS:** ${vuln.cvss}\n`;
-          formattedText += `**Summary:** ${vuln.summary}\n`;
-          if (vuln.kev) formattedText += `⚠️ **Known Exploited Vulnerability**\n`;
-          if (vuln.ransomware_campaign) formattedText += `🚨 **Associated with Ransomware**\n`;
-          formattedText += "\n";
-        });
-      } else {
-        formattedText += "No vulnerabilities found matching the criteria.\n";
-      }
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: formattedText
-          }
-        ]
-      };
-    } catch (error) {
-      const err = error as Error;
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Error fetching latest vulnerabilities: ${err.message}`
-          }
-        ],
-        isError: true
-      };
-    }
-  }
-);
-
-/**
- * Product Vulnerability Analysis Tool
- * Analyze vulnerabilities for a specific product
- */
-server.tool(
-  "product-vuln-analysis",
-  "Analyze vulnerabilities for a product",
-  {
-    vendor: z.string().describe("Vendor name"),
-    product: z.string().describe("Product name"),
-    version: z.string().optional().describe("Product version"),
-    timeframe: z.number().optional().describe("Days to look back")
-  },
-  async ({ vendor, product, version, timeframe = 365 }) => {
-    try {
-      const params: Record<string, string | number> = {
-        vendor,
-        product,
-        days: timeframe
-      };
-      
-      if (version) {
-        params.version = version;
-      }
-      
-      const data = await cvedbApiRequest<CVEDBVulnerabilityList>("/api/v1/product/vulnerabilities", params);
-      
-      let formattedText = `## Vulnerability Analysis: ${vendor} ${product}`;
-      if (version) formattedText += ` ${version}`;
-      formattedText += "\n\n";
-      
-      formattedText += `**Time Period:** Last ${timeframe} days\n`;
-      formattedText += `**Total Vulnerabilities:** ${data.total}\n\n`;
-      
-      if (data.matches.length > 0) {
-        // Calculate statistics
-        const criticalVulns = data.matches.filter((v: CVEDBVulnerability) => v.cvss >= 9.0);
-        const highVulns = data.matches.filter((v: CVEDBVulnerability) => v.cvss >= 7.0 && v.cvss < 9.0);
-        const kevVulns = data.matches.filter((v: CVEDBVulnerability) => v.kev);
-        const ransomwareVulns = data.matches.filter((v: CVEDBVulnerability) => v.ransomware_campaign);
-        
-        formattedText += "### Summary Statistics\n";
-        formattedText += `- Critical Vulnerabilities (CVSS ≥ 9.0): ${criticalVulns.length}\n`;
-        formattedText += `- High Vulnerabilities (CVSS 7.0-8.9): ${highVulns.length}\n`;
-        formattedText += `- Known Exploited Vulnerabilities: ${kevVulns.length}\n`;
-        formattedText += `- Ransomware-Related: ${ransomwareVulns.length}\n\n`;
-        
-        formattedText += "### Critical Vulnerabilities\n";
-        criticalVulns.forEach((vuln: CVEDBVulnerability) => {
-          formattedText += `- ${vuln.cve} (CVSS: ${vuln.cvss})\n`;
-          formattedText += `  ${vuln.summary}\n\n`;
-        });
-        
-        if (kevVulns.length > 0) {
-          formattedText += "### Known Exploited Vulnerabilities\n";
-          kevVulns.forEach((vuln: CVEDBVulnerability) => {
-            formattedText += `- ${vuln.cve} (CVSS: ${vuln.cvss})\n`;
-            formattedText += `  ${vuln.summary}\n\n`;
-          });
+Present findings in a structured report focused on the internet-facing assets discovered through Shodan.`
         }
-      } else {
-        formattedText += "No vulnerabilities found matching the criteria.\n";
-      }
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: formattedText
-          }
-        ]
-      };
-    } catch (error) {
-      const err = error as Error;
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Error analyzing product vulnerabilities: ${err.message}`
-          }
-        ],
-        isError: true
-      };
-    }
+      }]
+    };
   }
 );
 
-/**
- * CPE Dictionary Search Tool
- * Search for CPE 2.3 entries by product name
- */
-server.tool(
-  "cpe-search",
-  "Search for CPE 2.3 entries",
+// Vulnerability Assessment Prompt
+server.prompt(
+  "vulnerability-assessment",
+  "Find vulnerabilities in internet-connected systems",
   {
-    query: z.string().describe("Product name to search for"),
-    maxResults: z.number().optional().describe("Maximum number of results to return")
+    target_type: z.enum(["host", "domain", "cpe", "cve"]).describe("Type of target to analyze"),
+    target: z.string().describe("Target identifier (IP, domain, CPE string, or CVE ID)"),
+    severity_threshold: z.enum(["all", "medium", "high", "critical"]).optional().describe("Minimum severity threshold")
   },
-  async ({ query, maxResults = 50 }) => {
-    try {
-      const data = await cvedbApiRequest<CPEDictionaryList>("/api/v1/cpe/search", {
-        q: query,
-        limit: maxResults
-      });
+  (args) => {
+    const severity_map = {
+      "all": "0",
+      "medium": "4.0",
+      "high": "7.0",
+      "critical": "9.0"
+    };
+    
+    const min_cvss = severity_map[args.severity_threshold || "all"];
+    
+    const initial_instructions = 
+      args.target_type === "host" ?
+        `- Use host-info tool with:
+   * ip="${args.target}"
+   * history=true
+   - Examine the banners and vulnerability information in the results` :
+      args.target_type === "domain" ?
+        `- Use domain-info tool with domain="${args.target}"
+   - For each IP discovered, use host-info to check for vulnerabilities
+   - Pay special attention to subdomains with unusual services` :
+      args.target_type === "cpe" ?
+        `- Use cpe-vuln-search tool with:
+   * cpe="${args.target}"
+   * minCvss=${min_cvss}
+   * maxResults=100` :
+        `- Use cve-lookup tool with cve="${args.target}"`;
       
-      let formattedText = `## CPE Search Results: "${query}"\n\n`;
-      formattedText += `**Total Matches:** ${data.total}\n\n`;
-      
-      if (data.matches.length > 0) {
-        // Group by vendor
-        const vendorGroups = data.matches.reduce((groups: { [key: string]: CPEDictionaryEntry[] }, entry: CPEDictionaryEntry) => {
-          const vendor = entry.vendor;
-          if (!groups[vendor]) {
-            groups[vendor] = [];
-          }
-          groups[vendor].push(entry);
-          return groups;
-        }, {});
-        
-        for (const [vendor, entries] of Object.entries(vendorGroups)) {
-          formattedText += `### ${vendor}\n`;
-          (entries as CPEDictionaryEntry[]).forEach((entry: CPEDictionaryEntry) => {
-            formattedText += `- **Product:** ${entry.product}\n`;
-            formattedText += `  **Version:** ${entry.version}\n`;
-            formattedText += `  **CPE:** \`${entry.cpe23}\`\n\n`;
-          });
-        }
-      } else {
-        formattedText += "No CPE entries found matching the search query.\n";
-      }
+    return {
+      messages: [{
+        role: "user",
+        content: {
+          type: "text",
+          text: `Perform a vulnerability assessment for ${args.target_type} "${args.target}" with severity threshold ${args.severity_threshold || "all"}:
 
-      return {
-        content: [
-          {
-            type: "text",
-            text: formattedText
-          }
-        ]
-      };
-    } catch (error) {
-      const err = error as Error;
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Error searching CPE dictionary: ${err.message}`
-          }
-        ],
-        isError: true
-      };
-    }
+1. Vulnerability Discovery
+   ${initial_instructions}
+
+2. Vulnerability Assessment
+   - Identify vulnerability types and categories
+   - Note CVE IDs and CVSS scores 
+   - Examine service versions and affected products
+   - Document exposure dates and discovery timing
+
+3. Risk Contextualization
+   - Prioritize vulnerabilities by severity
+   - Highlight internet-exposed vulnerable services
+   - Note common exploitation vectors
+   - Consider scope of potential impact
+
+4. Remediation Guidance
+   - Suggest version upgrades where applicable
+   - Recommend configuration changes
+   - Advise on exposure reduction options
+   - Propose monitoring and alerting measures
+
+Present findings based solely on information available through Shodan's vulnerability data.`
+        }
+      }]
+    };
+  }
+);
+
+// Internet Search Prompt
+server.prompt(
+  "internet-search",
+  "Search for specific internet-connected systems or services",
+  {
+    query: z.string().describe("Shodan search query to execute"),
+    facets: z.string().optional().describe("Optional facets for statistical breakdown (comma-separated)"),
+    page_limit: z.string().optional().describe("Maximum number of results pages to retrieve")
+  },
+  (args) => {
+    const facet_param = args.facets ? `\n     * facets="${args.facets}"` : '';
+    const pages = args.page_limit ? Math.min(parseInt(args.page_limit) || 1, 10) : 1;
+      
+    return {
+      messages: [{
+        role: "user",
+        content: {
+          type: "text",
+          text: `Perform a comprehensive Shodan search for "${args.query}":
+
+1. Initial Search
+   - Use search-host-count tool with:
+     * query="${args.query}"${facet_param}
+   - Use search-host tool with:
+     * query="${args.query}"${facet_param}
+     * page=1${pages > 1 ? '\n   - Repeat for pages 2 through ' + pages + ' as needed' : ''}
+
+2. Results Analysis
+   - Summarize total results count and distribution
+   - Identify patterns in returned data
+   - Analyze geographical and organizational distribution
+   - Document common services, ports, and technologies
+
+3. Notable Findings
+   - Highlight unusual or interesting systems
+   - Note potential security implications
+   - Identify outdated or vulnerable services
+   - Document unexpected exposure patterns
+
+4. Suggested Follow-up
+   - Recommend more specific searches if applicable
+   - Suggest host-info for notable results
+   - Recommend potential monitoring targets
+   - Outline next analytical steps
+
+Present results in a clear report with statistics and key findings from the Shodan search.`
+        }
+      }]
+    };
+  }
+);
+
+// Network Security Monitoring Prompt
+server.prompt(
+  "security-monitoring",
+  "Setup and manage network security monitoring alerts",
+  {
+    action: z.enum(["create", "review", "modify", "delete"]).describe("Alert management action"),
+    target_type: z.enum(["ip", "service", "vulnerability", "custom"]).optional().describe("Type of target to monitor"),
+    target: z.string().optional().describe("Target to monitor (IP, service name, or vulnerability)"),
+    alert_id: z.string().optional().describe("Alert ID for modification or review")
+  },
+  (args) => {
+    const filter_examples = {
+      "ip": `{"ip": ["${args.target}"]}`,
+      "service": `{"port": [80, 443], "keyword": "${args.target}"}`,
+      "vulnerability": `{"vuln": ["${args.target}"]}`,
+      "custom": "{}"
+    };
+    
+    const filters = args.target_type ? filter_examples[args.target_type] : "{}";
+    
+    const action_instructions = 
+      args.action === "create" ?
+        `- Use list-triggers tool to view available triggers
+   - Use create-alert tool with:
+     * name="Monitor ${args.target_type || ''}: ${args.target || 'Custom Alert'}"
+     * filters=${filters}
+   - Document the alert ID for future reference` :
+      args.action === "review" ?
+        `- Use list-alerts tool to view all configured alerts
+   - Use get-alert-info tool with id="${args.alert_id}" to get detailed information
+   - Examine the alert configuration in detail` :
+      args.action === "modify" ?
+        `- Use get-alert-info tool with id="${args.alert_id}" to get current configuration
+   - Use edit-alert tool with:
+     * id="${args.alert_id}"
+     * filters=${filters}
+   - Verify the updated configuration` :
+      `- Use delete-alert tool with id="${args.alert_id}"
+   - Confirm the alert has been removed`;
+      
+    return {
+      messages: [{
+        role: "user",
+        content: {
+          type: "text",
+          text: `${args.action.charAt(0).toUpperCase() + args.action.slice(1)} security monitoring alert for ${args.target_type ? args.target_type + ' "' + args.target + '"' : 'alert ID "' + args.alert_id + '"'}:
+
+1. Alert Management
+   ${action_instructions}
+
+2. Alert Configuration Analysis
+   - Review the IP ranges or systems being monitored
+   - Examine the triggers that are configured
+   - Check notification settings and recipients
+   - Verify alert scope and coverage
+
+3. Monitoring Strategy
+   - Analyze what changes will trigger notifications
+   - Assess how the alert complements other monitoring
+   - Determine if the filters are appropriately specific
+   - Evaluate alert effectiveness for security visibility
+
+4. Optimization Suggestions
+   - Recommend adjustments to filter criteria
+   - Suggest additional triggers if appropriate
+   - Provide tips for reducing false positives
+   - Propose complementary alerts if needed
+
+Present a comprehensive report on the alert configuration and management.`
+        }
+      }]
+    };
+  }
+);
+
+// Industrial Control System Analysis Prompt
+server.prompt(
+  "ics-analysis",
+  "Analyze exposed industrial control systems and SCADA devices",
+  {
+    target_type: z.enum(["ip", "network", "product", "country"]).describe("Type of target to analyze"),
+    target: z.string().describe("Target identifier (IP, network range, product name, or country code)"),
+    protocol: z.string().optional().describe("Optional specific protocol to focus on")
+  },
+  (args) => {
+    const protocol_filter = args.protocol ? ` ${args.protocol}` : '';
+    const search_queries = {
+      "ip": `ip:"${args.target}" tag:ics${protocol_filter}`,
+      "network": `net:"${args.target}" tag:ics${protocol_filter}`,
+      "product": `product:"${args.target}" tag:ics${protocol_filter}`,
+      "country": `country:"${args.target}" tag:ics${protocol_filter}`
+    };
+    
+    const query = search_queries[args.target_type];
+      
+    return {
+      messages: [{
+        role: "user",
+        content: {
+          type: "text",
+          text: `Analyze industrial control systems for ${args.target_type} "${args.target}"${args.protocol ? ' using protocol ' + args.protocol : ''}:
+
+1. ICS Discovery
+   - Use search-host tool with query="${query}"
+   - Use search-host-count for statistical overview
+   - Use list-protocols tool to identify available ICS protocols
+   - For notable systems, use host-info to gather details
+
+2. Device Analysis
+   - Identify types of industrial devices exposed
+   - Document protocols and ports in use
+   - Note device manufacturers and models
+   - Examine firmware and software versions
+
+3. Exposure Assessment
+   - Map geographical distribution of systems
+   - Identify systems with direct internet exposure
+   - Note authentication mechanisms (or lack thereof)
+   - Document potentially vulnerable configurations
+
+4. Security Observations
+   - Highlight systems with known vulnerabilities
+   - Note outdated firmware or software
+   - Identify unusual exposure patterns
+   - Document security-relevant configuration details
+
+Present findings in a detailed report on the industrial systems discovered through Shodan.`
+        }
+      }]
+    };
+  }
+);
+
+// DNS Intelligence Prompt
+server.prompt(
+  "dns-intelligence",
+  "Analyze DNS information for domains and IP addresses",
+  {
+    target_type: z.enum(["domain", "ip", "hostname"]).describe("Type of target to analyze"),
+    target: z.string().describe("Domain name, IP address, or hostname to analyze"),
+    include_history: z.enum(["yes", "no"]).optional().describe("Include historical information if available")
+  },
+  (args) => {
+    const lookup_instructions =
+      args.target_type === "domain" ?
+        `- Use domain-info tool with domain="${args.target}"
+   - Document all subdomains and DNS records` :
+      args.target_type === "ip" ?
+        `- Use reverse-dns tool with ips="${args.target}"
+   - Examine all hostnames associated with the IP` :
+        `- Use dns-lookup tool with hostnames="${args.target}"
+   - Check the resolved IP addresses`;
+
+    return {
+      messages: [{
+        role: "user",
+        content: {
+          type: "text",
+          text: `Perform DNS intelligence analysis for ${args.target_type} "${args.target}":
+
+1. DNS Reconnaissance
+   ${lookup_instructions}
+   - If analyzing a domain, use search-host with query="hostname:${args.target}"
+   - If analyzing an IP, use host-info with ip="${args.target}"
+
+2. DNS Structure Analysis
+   - Map the DNS hierarchy
+   - Document all records by type (A, AAAA, MX, CNAME, etc.)
+   - Identify primary and secondary nameservers
+   - Note DNS-based security mechanisms (SPF, DMARC, etc.)
+
+3. Infrastructure Assessment
+   - Identify hosting providers and networks
+   - Map geographical distribution
+   - Document organization information
+   - Note autonomous system numbers (ASNs)
+
+4. Security Observations
+   - Flag unusual DNS configurations
+   - Identify potential DNS-based vulnerabilities
+   - Note signs of DNS misconfigurations
+   - Highlight suspicious patterns if present
+
+Present findings in a comprehensive DNS intelligence report based on Shodan data.`
+        }
+      }]
+    };
+  }
+);
+
+// Service Exposure Analysis Prompt
+server.prompt(
+  "service-exposure",
+  "Analyze specific service types exposed on the internet",
+  {
+    service_type: z.enum(["database", "webcam", "industrial", "remote-access", "custom"]).describe("Type of service to analyze"),
+    target_scope: z.enum(["global", "country", "organization", "ip-range"]).describe("Scope of analysis"),
+    target: z.string().optional().describe("Target value based on scope (country code, org name, IP range)"),
+    custom_query: z.string().optional().describe("Custom query for the 'custom' service type")
+  },
+  (args) => {
+    // Define service-specific queries
+    const service_queries = {
+      "database": "category:database -product:http",
+      "webcam": "webcam screenshot.available:true",
+      "industrial": "tag:ics,scada,plc",
+      "remote-access": "port:22,23,3389 product:SSH,RDP,Telnet",
+      "custom": args.custom_query || ""
+    };
+    
+    // Define scope-specific filters
+    const scope_filters = {
+      "global": "",
+      "country": args.target ? `country:${args.target}` : "",
+      "organization": args.target ? `org:"${args.target}"` : "",
+      "ip-range": args.target ? `net:${args.target}` : ""
+    };
+    
+    // Combine the queries
+    const base_query = service_queries[args.service_type];
+    const scope_filter = scope_filters[args.target_scope];
+    const query = scope_filter ? `${base_query} ${scope_filter}` : base_query;
+    
+    return {
+      messages: [{
+        role: "user",
+        content: {
+          type: "text",
+          text: `Analyze ${args.service_type} services ${args.target_scope !== "global" ? `for ${args.target_scope} "${args.target}"` : 'globally'}:
+
+1. Service Discovery
+   - Use search-host tool with query="${query}"
+   - Use search-host-count with the same query and facets="country,org,product,version"
+   - For notable systems, use host-info to gather detailed information
+
+2. Exposure Analysis
+   - Document total number of exposed services
+   - Map geographical distribution
+   - Identify top organizations exposing these services
+   - Note common product types and versions
+
+3. Configuration Assessment
+   - Identify default or weak configurations
+   - Note authentication mechanisms
+   - Document unusual port assignments
+   - Highlight risky service combinations
+
+4. Security Implications
+   - Identify outdated or vulnerable versions
+   - Note systems with known vulnerabilities
+   - Document common misconfigurations
+   - Highlight particularly sensitive exposures
+
+Present findings in a detailed service exposure report based on Shodan data.`
+        }
+      }]
+    };
+  }
+);
+
+// Account and API Status Prompt
+server.prompt(
+  "account-status",
+  "Analyze account information and API usage status",
+  {
+    info_type: z.enum(["profile", "api", "usage", "all"]).describe("Type of account information to retrieve")
+  },
+  (args) => {
+    const tool_instructions =
+      args.info_type === "profile" ?
+        `- Use get-profile tool to view account information` :
+      args.info_type === "api" ?
+        `- Use get-api-info tool to view API subscription details` :
+      args.info_type === "usage" ?
+        `- Use get-http-headers tool to view request details
+   - Use get-my-ip tool to confirm your external IP` :
+        `- Use get-profile tool for account information
+   - Use get-api-info tool for API subscription details
+   - Use get-http-headers and get-my-ip tools for usage information`;
+    
+    return {
+      messages: [{
+        role: "user",
+        content: {
+          type: "text",
+          text: `Analyze ${args.info_type === "all" ? "all" : args.info_type} account information:
+
+1. Information Gathering
+   ${tool_instructions}
+
+2. Account Analysis
+   - Summarize account status${args.info_type === "profile" || args.info_type === "all" ? `
+   - Check membership status
+   - Verify account creation date
+   - Note available credits` : ''}${args.info_type === "api" || args.info_type === "all" ? `
+   - Document API plan details
+   - Check usage limits
+   - Note monitoring capabilities
+   - Verify scan credits availability` : ''}${args.info_type === "usage" || args.info_type === "all" ? `
+   - Confirm current IP address
+   - Examine HTTP headers
+   - Verify connection details` : ''}
+
+3. Status Summary
+   - Provide concise account status overview
+   - Highlight available capabilities
+   - Note any limitations or restrictions
+   - Summarize credit usage and availability
+
+Present a clear summary of the requested account information.`
+        }
+      }]
+    };
+  }
+);
+
+// Scan Management Prompt
+server.prompt(
+  "scan-management",
+  "Manage and analyze on-demand network scans",
+  {
+    action: z.enum(["initiate", "check", "list"]).describe("Scan action to perform"),
+    target: z.string().optional().describe("Target IPs or networks to scan (comma-separated)"),
+    scan_id: z.string().optional().describe("Scan ID for checking status")
+  },
+  (args) => {
+    const action_instructions =
+      args.action === "initiate" ?
+        `- Use list-ports tool to see what ports Shodan is scanning
+   - Use request-scan tool with ips="${args.target}"
+   - Note the scan ID for future reference` :
+      args.action === "check" ?
+        `- Use get-scan-status tool with id="${args.scan_id}"
+   - Check if the scan is complete or still in progress` :
+        `- Use list-scans tool to see all your submitted scans
+   - Note the status of each scan`;
+    
+    return {
+      messages: [{
+        role: "user",
+        content: {
+          type: "text",
+          text: `${args.action.charAt(0).toUpperCase() + args.action.slice(1)} network scan ${args.action === "initiate" ? `for ${args.target}` : args.action === "check" ? `with ID ${args.scan_id}` : ""}:
+
+1. Scan Management
+   ${action_instructions}
+
+2. Scan Analysis
+   - Document scan details${args.action === "initiate" ? `
+   - Note the target IP ranges
+   - Check how many scan credits were used
+   - Verify scan submission status` : args.action === "check" ? `
+   - Check current scan progress
+   - Verify when the scan was created
+   - Note if scan is complete or still running` : `
+   - Identify recently completed scans
+   - Note scans still in progress
+   - Check scan sizes and targets
+   - Document credit usage`}
+
+3. Next Steps
+   - Provide guidance on follow-up actions${args.action === "initiate" ? `
+   - Suggest using get-scan-status to monitor progress
+   - Recommend search queries to find scan results when complete` : args.action === "check" ? `
+   - If complete, suggest search queries to find the results
+   - If in progress, recommend when to check again` : `
+   - Highlight important scans to check
+   - Suggest cleanup of old scans if necessary`}
+
+Present a clear summary of the scan management action and results.`
+        }
+      }]
+    };
+  }
+);
+
+// Search Analytics Prompt
+server.prompt(
+  "search-analytics",
+  "Analyze Shodan search capabilities and patterns",
+  {
+    action: z.enum(["analyze-query", "explore-facets", "examine-filters", "saved-queries"]).describe("Type of search analysis to perform"),
+    query: z.string().optional().describe("Query to analyze (for analyze-query action)")
+  },
+  (args) => {
+    const action_instructions =
+      args.action === "analyze-query" ?
+        `- Use search-tokens tool with query="${args.query}"
+   - Examine the token breakdown and filters used` :
+      args.action === "explore-facets" ?
+        `- Use list-search-facets tool to get all available facets
+   - Document facet options for data aggregation` :
+      args.action === "examine-filters" ?
+        `- Use list-search-filters tool to get all available search filters
+   - Explore the filtering capabilities` :
+        `- Use list-queries tool to view popular saved searches
+   - Examine query patterns and common techniques`;
+    
+    return {
+      messages: [{
+        role: "user",
+        content: {
+          type: "text",
+          text: `Perform ${args.action.replace(/-/g, ' ')} analysis${args.action === "analyze-query" ? ` for query "${args.query}"` : ''}:
+
+1. Search Analysis
+   ${action_instructions}
+
+2. Insights${args.action === "analyze-query" ? `
+   - Break down the query components
+   - Identify filters and their parameters
+   - Note any syntax issues or errors
+   - Suggest query improvements` : args.action === "explore-facets" ? `
+   - Categorize available facets by type
+   - Explain how facets can be used for data aggregation
+   - Highlight useful facets for security analysis
+   - Suggest combinations for effective analysis` : args.action === "examine-filters" ? `
+   - Document filter categories and purposes
+   - Explain syntax for different filter types
+   - Highlight security-relevant filters
+   - Suggest useful filter combinations` : `
+   - Identify popular search patterns
+   - Note common query techniques
+   - Document security-focused queries
+   - Highlight trending search topics`}
+
+3. Applications
+   - Suggest practical applications for the findings
+   - Recommend how to improve search effectiveness
+   - Provide tips for better data discovery
+   - Outline advanced search strategies
+
+Present a clear analysis based on Shodan's search capabilities.`
+        }
+      }]
+    };
+  }
+);
+
+// Targeted Vulnerability Hunting Prompt
+server.prompt(
+  "vulnerability-hunting",
+  "Hunt for specific vulnerabilities across the internet",
+  {
+    vuln_type: z.enum(["cve", "product", "service", "custom"]).describe("Type of vulnerability to hunt"),
+    target: z.string().describe("Vulnerability target (CVE ID, product name, service type)"),
+    scope: z.enum(["global", "regional", "industry"]).optional().describe("Scope of the search"),
+    scope_value: z.string().optional().describe("Value for scope (country, industry)")
+  },
+  (args) => {
+    // Define base queries by vulnerability type
+    const vuln_queries = {
+      "cve": `vuln:"${args.target}"`,
+      "product": `product:"${args.target}" -product:""`,
+      "service": `port:${args.target}`,
+      "custom": args.target
+    };
+    
+    // Define scope filters
+    const scope_filters = {
+      "global": "",
+      "regional": args.scope_value ? `country:${args.scope_value}` : "",
+      "industry": args.scope_value ? `org:"${args.scope_value}"` : ""
+    };
+    
+    // Build the query
+    const base_query = vuln_queries[args.vuln_type];
+    const scope_filter = scope_filters[args.scope || "global"];
+    const query = scope_filter ? `${base_query} ${scope_filter}` : base_query;
+    
+    return {
+      messages: [{
+        role: "user",
+        content: {
+          type: "text",
+          text: `Hunt for ${args.vuln_type === "cve" ? `CVE ${args.target}` : args.vuln_type === "product" ? `vulnerable ${args.target} products` : args.vuln_type === "service" ? `vulnerable services on port ${args.target}` : `custom vulnerability pattern "${args.target}"`}${args.scope && args.scope !== "global" ? ` in ${args.scope} ${args.scope_value}` : ''}:
+
+1. Vulnerability Search
+   - Use search-host tool with query="${query}"
+   - Use search-host-count with the same query and facets="country,org,os,port,product,version"
+   - For CVE-specific searches, use cve-lookup for detailed information
+
+2. Exposure Analysis
+   - Document total exposed vulnerable systems
+   - Map geographical distribution
+   - Identify most affected organizations
+   - Note distribution across industries
+
+3. Impact Assessment
+   - Analyze affected system types
+   - Document vulnerable service versions
+   - Note exposure timeframes
+   - Highlight critical infrastructure impacts
+
+4. Technical Details
+   - Document vulnerable configurations
+   - Note common misconfigurations
+   - Identify patch levels and versions
+   - Record authentication mechanisms
+
+Present a detailed vulnerability hunting report based purely on Shodan data.`
+        }
+      }]
+    };
   }
 );
 

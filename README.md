@@ -1,130 +1,327 @@
 # Shodan MCP Server
 
-A Model Context Protocol (MCP) server that provides access to Shodan's powerful API capabilities. This server allows you to perform various network intelligence operations including host information lookup, DNS operations, network scanning, alerts management, and account management.
+> Developed by ADEO Cybersecurity Services
+
+A Model Context Protocol (MCP) server that provides access to Shodan's powerful API capabilities. This server, developed and maintained by ADEO Cybersecurity Services, enables cybersecurity analysts to perform network intelligence operations including host information lookup, DNS operations, vulnerability analysis, network scanning, and alerts management through a collection of tools and prompt templates.
+
+## About ADEO Cybersecurity Services
+
+ADEO Cybersecurity Services specializes in providing advanced security solutions and tools for cybersecurity professionals. This Shodan MCP Server is part of our commitment to enhancing cybersecurity capabilities through innovative tools and integrations with industry-leading security data sources.
 
 ## Features
 
-### MCP Capabilities
-- **Tools**: Execute various Shodan API operations through standardized tools
-- **Resources**: Access Shodan data through URI-based resources
-- **Prompts**: Use pre-defined templates for security analysis
-
 ### Host Information & DNS Operations
-- **Host Information**: Get detailed information about any IP address including open ports, services, and location data
-- **DNS Lookup**: Resolve hostnames to IP addresses
-- **Reverse DNS**: Look up hostnames for IP addresses
-- **Domain Information**: Retrieve DNS entries and subdomains for any domain
+- Detailed information about IP addresses including open ports, services, and location data
+- DNS lookup and reverse DNS operations
+- Domain information retrieval including subdomains
 
 ### Search Capabilities
-- **Host Search**: Search Shodan's database using powerful filters and facets
-- **Search Count**: Get the number of results for a search query without consuming credits
-- **Search Facets**: List and use available facets for summarizing data
-- **Search Filters**: Access all available search filters
-- **Query Analysis**: Break down search queries into tokens for analysis
+- Search Shodan's database using powerful filters and facets
+- Statistical analysis of search results
+- Token-based query analysis
 
 ### Network Scanning
-- **Port List**: View all ports that Shodan is actively scanning
-- **Protocol List**: Access available protocols for Internet scanning
-- **On-Demand Scanning**: Request scans of specific IPs or networks
-- **Scan Management**: Track and manage your scan requests
+- On-demand scanning of specific IPs or networks
+- Scan status monitoring and management
+- Access to Shodan's scanning protocols and ports
 
 ### Network Alerts
-- **Alert Creation**: Set up monitoring for specific IPs and ports
-- **Alert Management**: View, edit, and delete network alerts
-- **Trigger List**: Access available alert triggers
-- **Alert Status**: Monitor the status of your alerts
+- Set up and manage network monitoring alerts
+- Configure alert triggers and notifications
+- Track and manage security events
 
-### Directory Services
-- **Saved Queries**: List and search through saved Shodan queries
-- **Query Tags**: View popular tags for saved queries
-- **Query Management**: Access and organize your saved searches
+### Vulnerability Analysis
+- Search for specific vulnerabilities (CVEs)
+- Check vulnerability details and analysis
+- Hunt for vulnerable systems
 
 ### Account Management
-- **Profile Information**: View your account details
-- **API Status**: Check your API subscription and usage
-- **Billing Information**: Access your billing profile
+- View profile information and API usage
+- Check subscription status
 
-### Utility Tools
-- **HTTP Headers**: View your client's HTTP headers
-- **IP Address**: Check your current Internet-facing IP
+## Available Tools
 
-### CVEDB Tools
-13. **cve-lookup**
-    - Get detailed information about a specific CVE
+### Host & DNS Tools
+1. **host-info**
+   - Get detailed information about a host from Shodan
+   - Parameters:
+     - `ip` (required): IP address to look up
+     - `history` (optional): Include historical information
+     - `minify` (optional): Return only basic host information
+
+2. **dns-lookup**
+   - Resolve hostnames to IP addresses
+   - Parameters:
+     - `hostnames` (required): Comma-separated list of hostnames to resolve
+
+3. **reverse-dns**
+   - Look up hostnames for IP addresses
+   - Parameters:
+     - `ips` (required): Comma-separated list of IP addresses
+
+4. **domain-info**
+   - Get DNS entries and subdomains for a domain
+   - Parameters:
+     - `domain` (required): Domain name to look up
+
+### Search Tools
+5. **search-host**
+   - Search Shodan for hosts matching specific criteria
+   - Parameters:
+     - `query` (required): Shodan search query
+     - `facets` (optional): Comma-separated list of properties for summary information
+     - `page` (optional): Page number for results
+
+6. **search-host-count**
+   - Search Shodan without results (just count and facets)
+   - Parameters:
+     - `query` (required): Shodan search query
+     - `facets` (optional): Comma-separated list of facets
+
+7. **list-search-facets**
+   - List all available search facets
+
+8. **list-search-filters**
+   - List all filters that can be used when searching
+
+9. **search-tokens**
+   - Break the search query into tokens for analysis
+   - Parameters:
+     - `query` (required): Shodan search query to analyze
+
+### Network Scanning Tools
+10. **list-ports**
+    - List all ports that Shodan is crawling on the Internet
+
+11. **list-protocols**
+    - List all protocols that can be used for scanning
+
+12. **request-scan**
+    - Request Shodan to scan an IP/network
+    - Parameters:
+      - `ips` (required): Comma-separated list of IPs or networks in CIDR notation
+
+13. **get-scan-status**
+    - Get the status of a scan request
+    - Parameters:
+      - `id` (required): The unique scan ID returned by request-scan
+
+14. **list-scans**
+    - Get list of all submitted scans
+
+### Network Alert Tools
+15. **list-triggers**
+    - List available triggers for network alerts
+
+16. **create-alert**
+    - Create a network alert for monitoring
+    - Parameters:
+      - `name` (required): Name of the alert
+      - `filters` (required): Filters to apply (can include IP addresses and ports)
+      - `expires` (optional): Number of seconds the alert should be active
+
+17. **get-alert-info**
+    - Get information about a specific alert
+    - Parameters:
+      - `id` (required): Alert ID to get information about
+
+18. **delete-alert**
+    - Delete a network alert
+    - Parameters:
+      - `id` (required): Alert ID to delete
+
+19. **edit-alert**
+    - Edit an existing alert
+    - Parameters:
+      - `id` (required): Alert ID to edit
+      - `name` (optional): New name for the alert
+      - `filters` (optional): New filters to apply
+
+20. **list-alerts**
+    - List all active alerts
+
+### Directory Tools
+21. **list-queries**
+    - List saved search queries
+    - Parameters:
+      - `page` (optional): Page number of results
+      - `sort` (optional): Sort queries by (votes or timestamp)
+      - `order` (optional): Sort order (asc or desc)
+
+22. **search-queries**
+    - Search through saved queries
+    - Parameters:
+      - `query` (required): Search term to find queries
+      - `page` (optional): Page number of results
+
+23. **list-query-tags**
+    - List popular tags for saved queries
+    - Parameters:
+      - `size` (optional): Number of tags to return
+
+### Account Tools
+24. **get-profile**
+    - Get account profile information
+
+25. **get-api-info**
+    - Get API subscription information
+
+26. **get-billing**
+    - Get billing profile information
+
+27. **get-http-headers**
+    - View the HTTP headers that you're sending in requests
+
+28. **get-my-ip**
+    - View your current IP address
+
+### Vulnerability Tools
+29. **cve-lookup**
+    - Get detailed information about a CVE
     - Parameters:
       - `cve` (required): CVE ID to look up (e.g., CVE-2021-44228)
 
-14. **cpe-vuln-search**
+30. **cpe-vuln-search**
     - Search for vulnerabilities by CPE
     - Parameters:
       - `cpe` (required): CPE 2.3 string to search for
       - `minCvss` (optional): Minimum CVSS score (0-10)
       - `maxResults` (optional): Maximum number of results to return
 
-15. **latest-vulns**
-    - Get latest published vulnerabilities
-    - Parameters:
-      - `days` (optional): Number of days to look back
-      - `minEpss` (optional): Minimum EPSS score (0-1)
-      - `kevOnly` (optional): Show only Known Exploited Vulnerabilities
+## Consolidated Analysis Prompts
 
-16. **product-vuln-analysis**
-    - Analyze vulnerabilities for a product
-    - Parameters:
-      - `vendor` (required): Vendor name
-      - `product` (required): Product name
-      - `version` (optional): Product version
-      - `timeframe` (optional): Days to look back
+The server provides streamlined prompt templates for comprehensive cybersecurity analysis workflows:
 
-17. **cpe-search**
-    - Search for CPE 2.3 entries
-    - Parameters:
-      - `query` (required): Product name to search for
-      - `maxResults` (optional): Maximum number of results to return
+### 1. Asset Discovery and Reconnaissance
+- **Name**: `asset-discovery`
+- **Description**: Discover and analyze internet-facing assets and infrastructure
+- **Arguments**:
+  - `target` (required): Domain, IP address, or organization name to analyze
+  - `depth` (optional): Depth of reconnaissance ("basic" or "comprehensive")
+- **Example**:
+  ```
+  @shodan asset-discovery target=acme.com depth=comprehensive
+  ```
 
-## CVEDB API Integration
+### 2. Vulnerability Assessment
+- **Name**: `vulnerability-assessment`
+- **Description**: Find vulnerabilities in internet-connected systems
+- **Arguments**:
+  - `target_type` (required): Type of target to analyze ("host", "domain", "cpe", "cve")
+  - `target` (required): Target identifier (IP, domain, CPE string, or CVE ID)
+  - `severity_threshold` (optional): Minimum severity threshold ("all", "medium", "high", "critical")
+- **Example**:
+  ```
+  @shodan vulnerability-assessment target_type=host target=192.168.1.1 severity_threshold=high
+  ```
 
-The Shodan MCP Server now includes integration with the CVEDB API (https://cvedb.shodan.io), providing enhanced vulnerability analysis capabilities:
+### 3. Internet Search
+- **Name**: `internet-search`
+- **Description**: Search for specific internet-connected systems or services
+- **Arguments**:
+  - `query` (required): Shodan search query to execute
+  - `facets` (optional): Optional facets for statistical breakdown (comma-separated)
+  - `page_limit` (optional): Maximum number of results pages to retrieve
+- **Example**:
+  ```
+  @shodan internet-search query="apache country:US port:443" facets="org,os"
+  ```
 
-### Features
-- Detailed CVE information lookup with CVSS and EPSS scores
-- CPE-based vulnerability searching
-- Latest vulnerability monitoring
-- Product-specific vulnerability analysis
-- CPE dictionary search functionality
+### 4. Security Monitoring
+- **Name**: `security-monitoring`
+- **Description**: Setup and manage network security monitoring alerts
+- **Arguments**:
+  - `action` (required): Alert management action ("create", "review", "modify", "delete")
+  - `target_type` (optional): Type of target to monitor ("ip", "service", "vulnerability", "custom")
+  - `target` (optional): Target to monitor (IP, service name, or vulnerability)
+  - `alert_id` (optional): Alert ID for modification or review
+- **Example**:
+  ```
+  @shodan security-monitoring action=create target_type=ip target=8.8.8.8
+  ```
 
-### Key Concepts
-- **CVSS**: Common Vulnerability Scoring System
-- **EPSS**: Exploit Prediction Scoring System
-- **KEV**: Known Exploited Vulnerabilities
-- **CPE**: Common Platform Enumeration
+### 5. ICS Analysis
+- **Name**: `ics-analysis`
+- **Description**: Analyze exposed industrial control systems and SCADA devices
+- **Arguments**:
+  - `target_type` (required): Type of target to analyze ("ip", "network", "product", "country")
+  - `target` (required): Target identifier (IP, network range, product name, or country code)
+  - `protocol` (optional): Optional specific protocol to focus on
+- **Example**:
+  ```
+  @shodan ics-analysis target_type=country target=US protocol=modbus
+  ```
 
-### Example Usage
+### 6. DNS Intelligence
+- **Name**: `dns-intelligence`
+- **Description**: Analyze DNS information for domains and IP addresses
+- **Arguments**:
+  - `target_type` (required): Type of target to analyze ("domain", "ip", "hostname")
+  - `target` (required): Domain name, IP address, or hostname to analyze
+  - `include_history` (optional): Include historical information if available ("yes", "no")
+- **Example**:
+  ```
+  @shodan dns-intelligence target_type=domain target=example.com
+  ```
 
-1. Looking up a specific CVE:
-```bash
-cve-lookup --cve CVE-2021-44228
-```
+### 7. Service Exposure Analysis
+- **Name**: `service-exposure`
+- **Description**: Analyze specific service types exposed on the internet
+- **Arguments**:
+  - `service_type` (required): Type of service to analyze ("database", "webcam", "industrial", "remote-access", "custom")
+  - `target_scope` (required): Scope of analysis ("global", "country", "organization", "ip-range")
+  - `target` (optional): Target value based on scope (country code, org name, IP range)
+  - `custom_query` (optional): Custom query for the 'custom' service type
+- **Example**:
+  ```
+  @shodan service-exposure service_type=database target_scope=country target=US
+  ```
 
-2. Searching vulnerabilities for a CPE:
-```bash
-cpe-vuln-search --cpe "cpe:2.3:a:apache:log4j:2.0:*:*:*:*:*:*:*" --minCvss 7.0
-```
+### 8. Account Status
+- **Name**: `account-status`
+- **Description**: Analyze account information and API usage status
+- **Arguments**:
+  - `info_type` (required): Type of account information to retrieve ("profile", "api", "usage", "all")
+- **Example**:
+  ```
+  @shodan account-status info_type=all
+  ```
 
-3. Getting latest vulnerabilities:
-```bash
-latest-vulns --days 7 --minEpss 0.5 --kevOnly true
-```
+### 9. Scan Management
+- **Name**: `scan-management`
+- **Description**: Manage and analyze on-demand network scans
+- **Arguments**:
+  - `action` (required): Scan action to perform ("initiate", "check", "list")
+  - `target` (optional): Target IPs or networks to scan (comma-separated)
+  - `scan_id` (optional): Scan ID for checking status
+- **Example**:
+  ```
+  @shodan scan-management action=initiate target=192.168.1.0/24
+  ```
 
-4. Analyzing product vulnerabilities:
-```bash
-product-vuln-analysis --vendor apache --product log4j --version 2.0
-```
+### 10. Search Analytics
+- **Name**: `search-analytics`
+- **Description**: Analyze Shodan search capabilities and patterns
+- **Arguments**:
+  - `action` (required): Type of search analysis to perform ("analyze-query", "explore-facets", "examine-filters", "saved-queries")
+  - `query` (optional): Query to analyze (for analyze-query action)
+- **Example**:
+  ```
+  @shodan search-analytics action=analyze-query query="apache country:DE port:443"
+  ```
 
-5. Searching CPE dictionary:
-```bash
-cpe-search --query "nginx" --maxResults 20
-```
+### 11. Vulnerability Hunting
+- **Name**: `vulnerability-hunting`
+- **Description**: Hunt for specific vulnerabilities across the internet
+- **Arguments**:
+  - `vuln_type` (required): Type of vulnerability to hunt ("cve", "product", "service", "custom")
+  - `target` (required): Vulnerability target (CVE ID, product name, service type)
+  - `scope` (optional): Scope of the search ("global", "regional", "industry")
+  - `scope_value` (optional): Value for scope (country, industry)
+- **Example**:
+  ```
+  @shodan vulnerability-hunting vuln_type=cve target=CVE-2021-44228 scope=regional scope_value=US
+  ```
 
 ## Prerequisites
 
@@ -146,12 +343,6 @@ npm install
 SHODAN_API_KEY=your_api_key_here
 ```
 
-## Building
-
-```bash
-npm run build
-```
-
 ## Running the Server
 
 You can run the server using one of the following methods:
@@ -167,282 +358,75 @@ npm run build
 npm start -- --api-key YOUR_API_KEY
 ```
 
-## Available Resources
+## Example Usage Scenarios
 
-### Host Information Resource
-- **URI Template**: `shodan://host/{ip}`
-- **Description**: Get detailed host information including open ports, services, and vulnerabilities
-- **Response Format**: JSON
-- **Example**: `shodan://host/8.8.8.8`
+### Cybersecurity Reconnaissance Workflow
+1. Start with asset discovery for a target organization:
+   ```
+   @shodan asset-discovery target=targetcompany.com depth=comprehensive
+   ```
 
-### Domain Information Resource
-- **URI Template**: `shodan://domain/{domain}`
-- **Description**: Get DNS entries and subdomains for a domain
-- **Response Format**: JSON
-- **Example**: `shodan://domain/example.com`
+2. Perform DNS intelligence on discovered domains:
+   ```
+   @shodan dns-intelligence target_type=domain target=targetcompany.com
+   ```
 
-### Search Results Resource
-- **URI Template**: `shodan://search/{query}`
-- **Description**: Get search results for a specific Shodan query
-- **Response Format**: JSON
-- **Example**: `shodan://search/apache%20country:DE`
+3. Analyze specific hosts for vulnerabilities:
+   ```
+   @shodan vulnerability-assessment target_type=host target=192.168.1.1 severity_threshold=high
+   ```
 
-### Network Alerts Resource
-- **URI Template**: `shodan://alerts/{id}`
-- **Description**: Get information about network alerts (use "all" for all alerts)
-- **Response Format**: JSON
-- **Example**: `shodan://alerts/all`
+4. Set up monitoring for critical assets:
+   ```
+   @shodan security-monitoring action=create target_type=ip target=192.168.1.1
+   ```
 
-### Scan Status Resource
-- **URI Template**: `shodan://scan/{id}`
-- **Description**: Get the status and results of a specific network scan
-- **Response Format**: JSON
-- **Example**: `shodan://scan/SCAN_ID`
+### Vulnerability Research Workflow
+1. Hunt for a specific CVE across the internet:
+   ```
+   @shodan vulnerability-hunting vuln_type=cve target=CVE-2021-44228
+   ```
 
-### Query Directory Resource
-- **URI Template**: `shodan://queries/{type}`
-- **Description**: Access saved queries and tags (type can be "list" or "tags")
-- **Response Format**: JSON
-- **Example**: `shodan://queries/tags`
+2. Analyze which industries are most affected:
+   ```
+   @shodan internet-search query="vuln:CVE-2021-44228" facets="country,org,industry"
+   ```
 
-### API Status Resource
-- **URI Template**: `shodan://api/status`
-- **Description**: Get information about the current API key's status and usage
-- **Response Format**: JSON
-- **Example**: `shodan://api/status`
+3. Check details of the specific vulnerability:
+   ```
+   @shodan cve-lookup cve=CVE-2021-44228
+   ```
 
-## Available Prompts
+### Industrial System Security Analysis
+1. Identify ICS systems in a specific country:
+   ```
+   @shodan ics-analysis target_type=country target=DE
+   ```
 
-### Security Assessment Prompt
-- **Name**: `security-assessment`
-- **Description**: Analyze the security posture of an IP or domain
-- **Arguments**:
-  - `target` (required): IP address or domain to analyze
-  - `depth` (optional): Analysis depth (basic, standard, deep)
+2. Analyze specific industrial protocols:
+   ```
+   @shodan ics-analysis target_type=product target=siemens protocol=s7
+   ```
 
-### Vulnerability Analysis Prompt
-- **Name**: `vuln-analysis`
-- **Description**: Analyze vulnerabilities for a specific target
-- **Arguments**:
-  - `target` (required): IP address to analyze
-  - `timeframe` (optional): History timeframe to consider
+3. Set up alerts for newly discovered industrial systems:
+   ```
+   @shodan security-monitoring action=create target_type=service target=modbus
+   ```
 
-### Enhanced Vulnerability Assessment Prompt
-- **Name**: `enhanced-vuln-assessment`
-- **Description**: Perform detailed vulnerability assessment with severity filtering
-- **Arguments**:
-  - `target` (required): IP address or domain to analyze
-  - `severityThreshold` (optional): Minimum severity level to include (low, medium, high, critical)
-  - `priorityLevel` (optional): Priority level for remediation (low, medium, high)
+## Limitations
 
-### Network Topology Analysis Prompt
-- **Name**: `network-topology`
-- **Description**: Analyze network topology and suggest visualizations
-- **Arguments**:
-  - `target` (required): IP range or domain to analyze
-  - `scanType` (optional): Type of scan (basic, detailed, comprehensive)
-  - `compareWithPrevious` (optional): Compare with previous scan results (true/false)
+- API rate limits apply based on your Shodan subscription
+- Some operations consume query credits
+- On-demand scanning consumes scan credits
 
-### IoT Device Discovery Prompt
-- **Name**: `iot-discovery`
-- **Description**: Discover and analyze IoT devices in the network
-- **Arguments**:
-  - `target` (required): Network range to scan for IoT devices
-  - `deviceType` (optional): Specific type of IoT device to look for
-  - `manufacturer` (optional): Specific manufacturer to filter by
-  - `protocol` (optional): Specific protocol to search for
+## Contact & Support
 
-### Security Posture Evaluation Prompt
-- **Name**: `security-posture`
-- **Description**: Evaluate security posture against compliance frameworks
-- **Arguments**:
-  - `target` (required): Target network or domain to evaluate
-  - `complianceFramework` (optional): Compliance framework to evaluate against (NIST, ISO, etc.)
-  - `includeRemediation` (optional): Include detailed remediation steps (true/false)
+For issues, feature requests, or questions about this Shodan MCP Server, please contact:
 
-### Threat Intelligence Integration Prompt
-- **Name**: `threat-intel`
-- **Description**: Analyze threat intelligence and provide risk assessment
-- **Arguments**:
-  - `target` (required): IP or domain to analyze
-  - `threatSource` (optional): Specific threat intelligence source to use
-  - `riskLevel` (optional): Minimum risk level to include (low, medium, high)
+**ADEO Cybersecurity Services**  
+Email: info@adeosecurity.com  
+Website: [https://www.adeosecurity.com](https://www.adeosecurity.com)
 
-## Available Tools
+---
 
-### Host Information & DNS
-1. **host-info**
-   - Get detailed information about a host
-   - Parameters:
-     - `ip` (required): IP address to look up
-     - `history` (optional): Include historical information
-     - `minify` (optional): Return only basic host information
-
-2. **dns-lookup**
-   - Resolve hostnames to IP addresses
-   - Parameters:
-     - `hostnames` (required): Comma-separated list of hostnames
-
-3. **reverse-dns**
-   - Look up hostnames for IP addresses
-   - Parameters:
-     - `ips` (required): Comma-separated list of IP addresses
-
-4. **domain-info**
-   - Get DNS entries and subdomains for a domain
-   - Parameters:
-     - `domain` (required): Domain name to look up
-
-### Search Tools
-5. **search-host**
-   - Search Shodan's database
-   - Parameters:
-     - `query` (required): Shodan search query
-     - `facets` (optional): Properties for summary information
-     - `page` (optional): Results page number
-
-6. **search-host-count**
-   - Get number of results for a search
-   - Parameters:
-     - `query` (required): Search query
-     - `facets` (optional): Summary properties
-
-7. **list-search-facets**
-   - List available search facets
-   - No parameters required
-
-8. **list-search-filters**
-   - List available search filters
-   - No parameters required
-
-9. **search-tokens**
-   - Analyze search query structure
-   - Parameters:
-     - `query` (required): Query to analyze
-
-### Network Scanning
-10. **list-ports**
-    - List ports Shodan is scanning
-    - No parameters required
-
-11. **list-protocols**
-    - List available scanning protocols
-    - No parameters required
-
-12. **request-scan**
-    - Request a network scan
-    - Parameters:
-      - `ips` (required): IPs/networks to scan
-
-13. **get-scan-status**
-    - Check scan progress
-    - Parameters:
-      - `id` (required): Scan ID
-
-14. **list-scans**
-    - List all submitted scans
-    - No parameters required
-
-### Network Alerts
-15. **list-triggers**
-    - List available alert triggers
-    - No parameters required
-
-16. **create-alert**
-    - Create a network alert
-    - Parameters:
-      - `name` (required): Alert name
-      - `filters` (required): IP/port filters
-      - `expires` (optional): Expiration time
-
-17. **get-alert-info**
-    - Get alert details
-    - Parameters:
-      - `id` (required): Alert ID
-
-18. **delete-alert**
-    - Delete an alert
-    - Parameters:
-      - `id` (required): Alert ID
-
-19. **edit-alert**
-    - Modify an alert
-    - Parameters:
-      - `id` (required): Alert ID
-      - `name` (optional): New name
-      - `filters` (optional): New filters
-
-20. **list-alerts**
-    - List all active alerts
-    - No parameters required
-
-### Directory Methods
-21. **list-queries**
-    - List saved searches
-    - Parameters:
-      - `page` (optional): Page number
-      - `sort` (optional): Sort by votes/timestamp
-      - `order` (optional): Sort order
-
-22. **search-queries**
-    - Search saved queries
-    - Parameters:
-      - `query` (required): Search term
-      - `page` (optional): Page number
-
-23. **list-query-tags**
-    - List popular query tags
-    - Parameters:
-      - `size` (optional): Number of tags
-
-### Account Management
-24. **get-profile**
-    - Get account information
-    - No parameters required
-
-25. **get-api-info**
-    - Get API subscription details
-    - No parameters required
-
-26. **get-billing**
-    - Get billing information
-    - No parameters required
-
-### Utility Tools
-27. **get-http-headers**
-    - View your HTTP headers
-    - No parameters required
-
-28. **get-my-ip**
-    - Get your current IP
-    - No parameters required
-
-29. **hello**
-    - Test server connection
-    - No parameters required
-
-## Technical Details
-
-- Built with TypeScript
-- Uses the Model Context Protocol SDK
-- Implements proper error handling and rate limiting
-- Supports ES modules
-- Includes comprehensive type definitions
-- Markdown-formatted output
-- Proper error handling for all API calls
-- Supports Resources, Tools, and Prompts capabilities
-
-## Credit Usage
-
-- Host lookups: 1 credit per lookup
-- Search queries: 1 credit per page after first page
-- On-demand scans: 1 credit per IP
-- Network alerts: Credits vary by alert type
-
-## License
-
-MIT
-
-## Author
-
-Halil Ozturkci
+Copyright © 2025 ADEO Cybersecurity Services. All rights reserved.
