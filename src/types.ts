@@ -26,6 +26,9 @@ export interface ShodanHostService {
   
   /** Raw banner data or response received from the service */
   data?: string;
+
+  /** Vulnerabilities found in this service */
+  vulns?: ShodanVulnerability[];
 }
 
 /**
@@ -116,4 +119,291 @@ export interface ShodanDomainInfo {
   
   /** Indicates if there are more results available */
   more?: boolean;
+}
+
+// Search Methods Types
+export interface ShodanSearchResult {
+  matches: ShodanSearchMatch[];
+  facets?: Record<string, Array<{count: number, value: string}>>;
+  total: number;
+}
+
+export interface ShodanSearchMatch {
+  product?: string;
+  hash?: number;
+  ip: number;
+  ip_str: string;
+  port: number;
+  hostnames: string[];
+  org?: string;
+  isp?: string;
+  location: {
+    city?: string;
+    region_code?: string;
+    area_code?: number;
+    longitude: number;
+    latitude: number;
+    country_code: string;
+    country_name: string;
+  };
+  timestamp: string;
+  domains?: string[];
+  data?: string;
+  asn?: string;
+  transport?: string;
+  os?: string;
+  _shodan: {
+    crawler: string;
+    ptr: boolean;
+    id: string;
+    module: string;
+    options: Record<string, any>;
+  };
+}
+
+export interface ShodanSearchTokens {
+  attributes: {
+    ports?: number[];
+    [key: string]: any;
+  };
+  errors: string[];
+  string: string;
+  filters: string[];
+}
+
+export interface ShodanSearchFilters {
+  filters: string[];
+}
+
+export interface ShodanSearchFacets {
+  facets: string[];
+}
+
+// On-Demand Scanning Types
+export interface ShodanScanResult {
+  id: string;
+  count: number;
+  credits_left: number;
+}
+
+export interface ShodanScanStatus {
+  id: string;
+  count: number;
+  status: 'SUBMITTING' | 'QUEUE' | 'PROCESSING' | 'DONE';
+  created: string;
+}
+
+export interface ShodanScanList {
+  matches: Array<{
+    id: string;
+    status: 'SUBMITTING' | 'QUEUE' | 'PROCESSING' | 'DONE';
+    created: string;
+    status_check: string;
+    credits_left: number;
+    size: number;
+  }>;
+  total: number;
+}
+
+export interface ShodanProtocols {
+  [protocol: string]: string;
+}
+
+export interface ShodanPorts {
+  ports: number[];
+}
+
+// Network Alerts Types
+export interface ShodanAlert {
+  id: string;
+  name: string;
+  created: string;
+  expires: string | null;
+  filters: {
+    ip: string[];
+    port: number[];
+    [key: string]: any;
+  };
+  size: number;
+  credits: number;
+}
+
+export interface ShodanAlertInfo extends ShodanAlert {
+  matches: ShodanSearchMatch[];
+}
+
+export interface ShodanAlertList {
+  alerts: ShodanAlert[];
+}
+
+export interface ShodanTrigger {
+  name: string;
+  description: string;
+  rule: string;
+}
+
+export interface ShodanTriggerList {
+  triggers: ShodanTrigger[];
+}
+
+// Directory Methods Types
+export interface ShodanQuery {
+  id: string;
+  name: string;
+  query: string;
+  created: string;
+  description?: string;
+  votes: number;
+  timestamp: string;
+  tags: string[];
+  sharing: number;
+}
+
+export interface ShodanQueryList {
+  total: number;
+  matches: ShodanQuery[];
+}
+
+export interface ShodanQueryTags {
+  total: number;
+  tags: Array<{
+    count: number;
+    value: string;
+  }>;
+}
+
+// Account Methods Types
+export interface ShodanAccount {
+  member: boolean;
+  credits: number;
+  display_name: string | null;
+  created: string;
+}
+
+export interface ShodanApiStatus {
+  scan_credits: number;
+  usage_limits: {
+    scan_credits: number;
+    query_credits: number;
+    monitored_ips: number;
+  };
+  plan: string;
+  https: boolean;
+  unlocked: boolean;
+}
+
+export interface ShodanBillingProfile {
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+  card_last4: string;
+  card_expiration: string;
+}
+
+// Utility Methods Types
+export interface ShodanHTTPHeaders {
+  [header: string]: string;
+}
+
+export interface ShodanMyIP {
+  ip: string;
+}
+
+/**
+ * Represents a vulnerability found in a service
+ */
+export interface ShodanVulnerability {
+  /** CVE ID of the vulnerability */
+  id: string;
+  
+  /** CVSS score of the vulnerability */
+  cvss: number;
+  
+  /** Summary description of the vulnerability */
+  summary: string;
+  
+  /** References to more information about the vulnerability */
+  references?: string[];
+}
+
+// Add types for MCP Resources
+export interface ResourceUri {
+  uri: string;
+}
+
+export interface ResourceContent {
+  uri: string;
+  mimeType?: string;
+  text?: string;
+  blob?: string;
+}
+
+// Add types for MCP Prompts
+export interface PromptArguments {
+  target?: string;
+  depth?: string;
+  timeframe?: string;
+  // Network Topology Analysis
+  scanType?: string;
+  compareWithPrevious?: boolean;
+  // IoT Device Discovery
+  deviceType?: string;
+  manufacturer?: string;
+  protocol?: string;
+  // Security Posture Evaluation
+  complianceFramework?: string;
+  includeRemediation?: boolean;
+  // Threat Intelligence
+  threatSource?: string;
+  riskLevel?: string;
+  // Vulnerability Assessment
+  severityThreshold?: string;
+  priorityLevel?: string;
+}
+
+export interface PromptMessage {
+  role: "user" | "assistant";
+  content: {
+    type: "text";
+    text: string;
+  };
+}
+
+export interface CVEDBVulnerability {
+    cve: string;
+    summary: string;
+    cvss: number;
+    cvss_version: number;
+    cvss_v2?: number;
+    cvss_v3?: number;
+    epss: number;
+    ranking_epss: number;
+    kev: boolean;
+    propose_action: string;
+    ransomware_campaign: string;
+    references: string[];
+    published_time: string;
+    cpes: string[];
+}
+
+export interface CVEDBVulnerabilityList {
+    total: number;
+    matches: CVEDBVulnerability[];
+}
+
+export interface CPEDictionaryEntry {
+    cpe23: string;
+    vendor: string;
+    product: string;
+    version: string;
+    update?: string;
+    edition?: string;
+}
+
+export interface CPEDictionaryList {
+    total: number;
+    matches: CPEDictionaryEntry[];
 } 
