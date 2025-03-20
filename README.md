@@ -1,5 +1,6 @@
 # Shodan MCP Server
 
+[![smithery badge](https://smithery.ai/badge/@ADEOSec/mcp-shodan)](https://smithery.ai/server/@ADEOSec/mcp-shodan)
 > Developed by ADEO Cybersecurity Services
 
 A Model Context Protocol (MCP) server that provides access to Shodan's powerful API capabilities. This server, developed and maintained by ADEO Cybersecurity Services, enables cybersecurity analysts to perform network intelligence operations including host information lookup, DNS operations, vulnerability analysis, network scanning, and alerts management through a collection of tools and prompt templates.
@@ -331,6 +332,15 @@ The server provides streamlined prompt templates for comprehensive cybersecurity
 
 ## Installation
 
+### Installing via Smithery
+
+To install Shodan MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@ADEOSec/mcp-shodan):
+
+```bash
+npx -y @smithery/cli install @ADEOSec/mcp-shodan --client claude
+```
+
+### Installing Manually
 1. Clone the repository
 2. Install dependencies:
 ```bash
