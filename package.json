@@ -1,29 +1,27 @@
 {
-  "name": "shodan-mcp-server",
+  "name": "adeo-cti-mcp",
   "version": "1.0.0",
-  "description": "MCP Server that exposes Shodan APIs",
-  "main": "build/index.js",
+  "description": "ADEO CTI MCP Server with VirusTotal integration",
   "type": "module",
+  "main": "build/index.js",
   "scripts": {
     "build": "tsc",
     "start": "node build/index.js",
-    "dev": "ts-node-esm src/index.ts"
+    "dev": "ts-node-esm src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [
-    "mcp",
-    "shodan",
-    "api"
-  ],
-  "author": "Halil Ozturkci",
+  "keywords": ["adeo", "cti", "mcp", "security", "virustotal"],
+  "author": "",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.6.1",
-    "node-fetch": "^3.3.2",
-    "zod": "^3.22.4"
+    "@modelcontextprotocol/sdk": "^0.1.0",
+    "axios": "^1.6.2",
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.22.1"
   },
   "devDependencies": {
-    "@types/node": "^20.11.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "@types/node": "^20.10.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.2"
   }
 }

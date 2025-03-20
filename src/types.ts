@@ -406,4 +406,230 @@ export interface CPEDictionaryEntry {
 export interface CPEDictionaryList {
     total: number;
     matches: CPEDictionaryEntry[];
+}
+
+// VirusTotal API Types
+
+/**
+ * Base VirusTotal API response interface
+ */
+export interface VirusTotalResponse<T> {
+  data: T;
+  meta?: Record<string, any>;
+}
+
+/**
+ * Common analysis statistics structure
+ */
+export interface AnalysisStats {
+  harmless: number;
+  malicious: number;
+  suspicious: number;
+  timeout: number;
+  undetected: number;
+}
+
+/**
+ * VirusTotal URL Analysis Interface
+ */
+export interface VirusTotalUrlAnalysis {
+  id: string;
+  type: string;
+  attributes: {
+    date: number;
+    status: string;
+    url: string;
+    last_analysis_date?: number;
+    last_analysis_stats?: AnalysisStats;
+    last_analysis_results?: Record<string, {
+      category: string;
+      engine_name: string;
+      method: string;
+      result: string | null;
+    }>;
+    reputation?: number;
+    categories?: Record<string, string>;
+    title?: string;
+    last_http_response_code?: number;
+    last_http_response_content_length?: number;
+    times_submitted?: number;
+    tags?: string[];
+    total_votes?: {
+      harmless: number;
+      malicious: number;
+    };
+    last_final_url?: string;
+    html_meta?: Record<string, string[]>;
+    redirection_chain?: string[];
+  };
+  links?: {
+    self: string;
+  };
+  relationships?: Record<string, {
+    data: any;
+    meta?: {
+      count: number;
+    };
+  }>;
+}
+
+/**
+ * VirusTotal File Analysis Interface
+ */
+export interface VirusTotalFileAnalysis {
+  id: string;
+  type: string;
+  attributes: {
+    md5: string;
+    sha1: string;
+    sha256: string;
+    size: number;
+    last_analysis_date?: number;
+    last_analysis_stats?: AnalysisStats;
+    last_analysis_results?: Record<string, {
+      category: string;
+      engine_name: string;
+      method: string;
+      result: string | null;
+    }>;
+    reputation?: number;
+    meaningful_name?: string;
+    type_description?: string;
+    tags?: string[];
+    total_votes?: {
+      harmless: number;
+      malicious: number;
+    };
+    times_submitted?: number;
+    last_submission_date?: number;
+    first_submission_date?: number;
+    sandbox_verdicts?: Record<string, {
+      category: string;
+      confidence: number;
+      sandbox_name: string;
+      malware_classification?: string[];
+    }>;
+    capabilities_tags?: string[];
+    crowdsourced_yara_results?: Array<{
+      description: string;
+      rule_name: string;
+      source: string;
+    }>;
+    sigma_analysis_stats?: {
+      critical: number;
+      high: number;
+      medium: number;
+      low: number;
+    };
+  };
+  links?: {
+    self: string;
+  };
+  relationships?: Record<string, {
+    data: any;
+    meta?: {
+      count: number;
+    };
+  }>;
+}
+
+/**
+ * VirusTotal IP Analysis Interface
+ */
+export interface VirusTotalIpAnalysis {
+  id: string;
+  type: string;
+  attributes: {
+    as_owner?: string;
+    asn?: number;
+    country?: string;
+    network?: string;
+    regional_internet_registry?: string;
+    last_analysis_date?: number;
+    last_analysis_stats?: AnalysisStats;
+    last_analysis_results?: Record<string, {
+      category: string;
+      engine_name: string;
+      method: string;
+      result: string | null;
+    }>;
+    reputation?: number;
+    tags?: string[];
+    total_votes?: {
+      harmless: number;
+      malicious: number;
+    };
+    continent?: string;
+    jarm?: string;
+    last_https_certificate?: {
+      issuer: {
+        C?: string;
+        CN?: string;
+        O?: string;
+      };
+      subject: {
+        CN?: string;
+      };
+      validity: {
+        not_after: string;
+        not_before: string;
+      };
+    };
+    whois?: string;
+    whois_date?: number;
+  };
+  links?: {
+    self: string;
+  };
+  relationships?: Record<string, {
+    data: any;
+    meta?: {
+      count: number;
+    };
+  }>;
+}
+
+/**
+ * VirusTotal Domain Analysis Interface
+ */
+export interface VirusTotalDomainAnalysis {
+  id: string;
+  type: string;
+  attributes: {
+    creation_date?: number;
+    last_update_date?: number;
+    last_analysis_date?: number;
+    last_analysis_stats?: AnalysisStats;
+    last_analysis_results?: Record<string, {
+      category: string;
+      engine_name: string;
+      method: string;
+      result: string | null;
+    }>;
+    categories?: Record<string, string>;
+    reputation?: number;
+    registrar?: string;
+    whois?: string;
+    whois_date?: number;
+    last_dns_records?: Array<{
+      type: string;
+      value: string;
+      ttl: number;
+    }>;
+    tags?: string[];
+    total_votes?: {
+      harmless: number;
+      malicious: number;
+    };
+    popularity_ranks?: Record<string, { rank: number }>;
+  };
+  links?: {
+    self: string;
+  };
+  relationships?: Record<string, {
+    data: any;
+    meta?: {
+      count: number;
+    };
+  }>;
 } 
