@@ -103,6 +103,883 @@ const server = new McpServer({
 });
 
 /**
+ * Resource Handlers
+ * Implement resource capabilities for the MCP server
+ */
+
+// Define resources for the server
+server.resource(
+  "threat-hunting-guide",
+  "guide://threat-hunting",
+  {
+    name: "How to Threat Hunting",
+    description: "A comprehensive guide on threat hunting using ADEO CTI MCP Server tools"
+  },
+  async (uri) => {
+    return {
+      contents: [{
+        uri: uri.href,
+        mimeType: "text/markdown",
+        text: `# ADEO CTI Threat Hunting Guide
+
+## Introduction
+
+This guide provides best practices for threat hunting using the ADEO CTI MCP Server tools. Threat hunting is a proactive cybersecurity approach that focuses on searching for malicious activities and threats that have evaded existing security solutions.
+
+## Available Tools for Threat Hunters
+
+### Reconnaissance & Intelligence Gathering
+
+1. **DNS Lookup** (dns-lookup)
+   - Use this tool to resolve domain names to IP addresses
+   - Helpful for identifying infrastructure connected to suspicious domains
+   - Example: Investigating domains from phishing emails or suspicious communications
+
+2. **Reverse DNS** (reverse-dns)
+   - Maps IP addresses back to hostnames
+   - Useful for understanding the ownership and purpose of suspicious IPs
+   - Can reveal patterns in attacker infrastructure
+
+3. **Domain Information** (domain-info)
+   - Provides comprehensive information about domains including subdomains
+   - Essential for understanding the attack surface of a target
+   - Can reveal potential entry points for attackers
+
+### Vulnerability Assessment
+
+1. **Host Information** (host-info)
+   - Provides detailed information about internet-facing systems
+   - Reveals open ports, running services, and potential vulnerabilities
+   - Critical for understanding exposure and attack vectors
+
+2. **CVE Lookup** (cve-lookup)
+   - Search for specific vulnerabilities by CVE ID
+   - Provides detailed information about known vulnerabilities
+   - Essential for understanding the severity and exploit potential
+
+### Threat Analysis
+
+1. **Search** (search-host)
+   - Search for specific internet-connected devices, services, or vulnerabilities
+   - Perfect for finding patterns across multiple targets
+   - Use Shodan query syntax to create precise searches
+
+2. **Search Count** (search-host-count)
+   - Get statistics about search results without the full details
+   - Great for understanding the scale of a threat or exposure
+
+3. **Search Tokens** (search-tokens)
+   - Understand how search queries are interpreted
+   - Helps in refining and optimizing complex searches
+
+### Monitoring & Alerting
+
+1. **Create Alert** (create-alert)
+   - Set up continuous monitoring for new threats or vulnerabilities
+   - Get notified when new systems matching your criteria appear
+   - Essential for ongoing threat hunting operations
+
+2. **List/Get/Delete Alerts** (list-alerts, get-alert-info, delete-alert)
+   - Manage your monitoring operations
+   - Review and refine your alert criteria
+
+### Malware Analysis
+
+1. **VirusTotal URL Analysis** (vt-url-analysis)
+   - Check if URLs are associated with malicious activities
+   - View detailed reports from multiple security engines
+   - Perfect for validating suspicious links
+
+2. **VirusTotal File Analysis** (vt-file-analysis)
+   - Analyze suspicious files for malware signatures
+   - Get comprehensive reports from multiple antivirus engines
+   - Essential for malware investigation
+
+3. **VirusTotal Domain/IP Analysis** (vt-domain-analysis, vt-ip-analysis)
+   - Investigate domains and IPs for malicious associations
+   - Understand historical reputation and threat intelligence
+   - Critical for infrastructure analysis
+
+## Workflow Examples
+
+### Investigating a Suspicious Domain
+
+1. Start with dns-lookup to find associated IP addresses
+2. Use host-info on those IPs to identify services and vulnerabilities
+3. Check domain reputation with vt-domain-analysis
+4. Set up an alert to monitor for changes
+
+### Proactive Vulnerability Scanning
+
+1. Use search-host with specific vulnerability filters
+2. Investigate interesting findings with host-info
+3. Look up specific vulnerabilities with cve-lookup
+4. Monitor critical assets with create-alert
+
+### Malware Campaign Analysis
+
+1. Analyze suspicious URLs with vt-url-analysis
+2. Expand investigation to linked domains using domain-info
+3. Check IP infrastructure with vt-ip-analysis
+4. Create alerts for related indicators using create-alert
+
+## Best Practices
+
+1. **Document Your Process** - Maintain clear records of your hunting activities
+2. **Focus on Patterns** - Look for connections between seemingly unrelated indicators
+3. **Validate Findings** - Confirm suspicious activity with multiple tools
+4. **Continuous Monitoring** - Set up alerts for ongoing surveillance
+5. **Update Knowledge** - Stay current on new threat tactics and techniques
+
+## Conclusion
+
+Effective threat hunting combines the powerful tools in the ADEO CTI MCP Server with analytical thinking and security expertise. By following the workflows and best practices in this guide, threat hunters can proactively identify and mitigate potential security risks before they become incidents.
+`
+      }]
+    };
+  }
+);
+
+// Define Shodan tools resource
+server.resource(
+  "shodan-tools-guide",
+  "guide://shodan-tools",
+  {
+    name: "Shodan Tools Guide",
+    description: "Comprehensive guide on using Shodan tools within the ADEO CTI MCP Server"
+  },
+  async (uri) => {
+    return {
+      contents: [{
+        uri: uri.href,
+        mimeType: "text/markdown",
+        text: `# Shodan Tools Guide
+
+## Introduction
+
+This guide provides detailed information on using the Shodan tools available within the ADEO CTI MCP Server. Shodan is a search engine for Internet-connected devices, allowing security professionals to discover, monitor, and analyze internet-facing systems and their vulnerabilities.
+
+## Available Shodan Tools
+
+### Host Information (host-info)
+
+**Purpose**: Retrieve comprehensive information about a specific IP address.
+
+**Parameters**:
+- \`ip\`: IP address to look up (required)
+- \`history\`: Include historical information (default: false)
+- \`minify\`: Return only basic host information (default: false)
+
+**Usage Example**:
+\`\`\`
+host-info:
+  ip: "8.8.8.8"
+  history: true
+\`\`\`
+
+**Output**: Detailed JSON containing information about the host, including open ports, services, vulnerabilities, location data, and ownership information.
+
+**Use Cases**:
+- Investigating suspicious IP addresses
+- Understanding the attack surface of a system
+- Verifying security configurations of internet-facing devices
+- Gathering intelligence on infrastructure
+
+### DNS Lookup (dns-lookup)
+
+**Purpose**: Resolve domain names to their corresponding IP addresses.
+
+**Parameters**:
+- \`hostnames\`: Comma-separated list of domain names to resolve
+
+**Usage Example**:
+\`\`\`
+dns-lookup:
+  hostnames: "example.com,google.com"
+\`\`\`
+
+**Output**: JSON mapping of domain names to their IP addresses.
+
+**Use Cases**:
+- Identifying the hosting infrastructure of suspicious domains
+- Tracking domain infrastructure changes
+- Correlating domains with known malicious IP addresses
+- Initial reconnaissance during security assessments
+
+### Reverse DNS (reverse-dns)
+
+**Purpose**: Look up hostnames associated with specific IP addresses.
+
+**Parameters**:
+- \`ips\`: Comma-separated list of IP addresses
+
+**Usage Example**:
+\`\`\`
+reverse-dns:
+  ips: "8.8.8.8,1.1.1.1"
+\`\`\`
+
+**Output**: JSON mapping of IP addresses to their associated hostnames.
+
+**Use Cases**:
+- Identifying services and purposes of IP addresses
+- Discovering related infrastructure
+- Enhancing IP intelligence with additional context
+- Validating legitimate services
+
+### Domain Information (domain-info)
+
+**Purpose**: Retrieve all available DNS information for a domain.
+
+**Parameters**:
+- \`domain\`: Domain name to analyze
+
+**Usage Example**:
+\`\`\`
+domain-info:
+  domain: "example.com"
+\`\`\`
+
+**Output**: Comprehensive DNS details including subdomains, DNS record types, and IP addresses associated with the domain.
+
+**Use Cases**:
+- Mapping domain infrastructure and subdomains
+- Discovering potential entry points and attack surfaces
+- Understanding domain ownership and structure
+- Tracking domain changes and new subdomains
+
+### Search Shodan (search-host)
+
+**Purpose**: Search for internet-connected devices matching specific criteria.
+
+**Parameters**:
+- \`query\`: Shodan search query using Shodan's search syntax
+- \`facets\`: Optional comma-separated list of properties to get summary information
+- \`page\`: Optional page number for paginating through large result sets
+
+**Usage Example**:
+\`\`\`
+search-host:
+  query: "apache country:DE port:443"
+  facets: "org,os"
+\`\`\`
+
+**Output**: JSON with matching hosts and result metadata.
+
+**Use Cases**:
+- Finding vulnerable systems
+- Discovering misconfigured services
+- Identifying devices running specific software
+- Tracking exposure of organizational assets
+
+### Search Count (search-host-count)
+
+**Purpose**: Get the number of results for a search query without retrieving actual results.
+
+**Parameters**:
+- \`query\`: Shodan search query
+- \`facets\`: Optional comma-separated list of properties to get summary information
+
+**Usage Example**:
+\`\`\`
+search-host-count:
+  query: "nginx country:US"
+  facets: "org,os"
+\`\`\`
+
+**Output**: JSON with count statistics and facet information.
+
+**Use Cases**:
+- Understanding the scale of vulnerabilities
+- Getting statistical overviews of exposed services
+- Quick validation of search queries
+- Tracking exposure trends over time
+
+### List Search Facets (list-search-facets)
+
+**Purpose**: List all available facets for search aggregation.
+
+**Parameters**: None required
+
+**Usage Example**:
+\`\`\`
+list-search-facets
+\`\`\`
+
+**Output**: JSON list of available facet properties.
+
+**Use Cases**:
+- Discovering data aggregation options
+- Understanding available search dimensions
+- Building more effective search queries
+
+### List Search Filters (list-search-filters)
+
+**Purpose**: List all available search filters.
+
+**Parameters**: None required
+
+**Usage Example**:
+\`\`\`
+list-search-filters
+\`\`\`
+
+**Output**: JSON list of available search filters and their descriptions.
+
+**Use Cases**:
+- Learning available search filtering options
+- Building more effective search queries
+- Understanding search syntax capabilities
+
+### Search Tokens (search-tokens)
+
+**Purpose**: Analyze a search query to understand how it's interpreted.
+
+**Parameters**:
+- \`query\`: Search query to analyze
+
+**Usage Example**:
+\`\`\`
+search-tokens:
+  query: "apache country:DE port:443"
+\`\`\`
+
+**Output**: JSON breakdown of how each part of the query is tokenized and interpreted.
+
+**Use Cases**:
+- Debugging complex search queries
+- Verifying query syntax
+- Optimizing search effectiveness
+
+### List Ports (list-ports)
+
+**Purpose**: Get a list of ports that Shodan is currently scanning.
+
+**Parameters**: None required
+
+**Usage Example**:
+\`\`\`
+list-ports
+\`\`\`
+
+**Output**: JSON list of port numbers.
+
+**Use Cases**:
+- Understanding coverage of Shodan's scanning
+- Planning security assessments
+- Evaluating potential visibility of services
+
+### List Protocols (list-protocols)
+
+**Purpose**: List all protocols that can be used for scanning.
+
+**Parameters**: None required
+
+**Usage Example**:
+\`\`\`
+list-protocols
+\`\`\`
+
+**Output**: JSON object mapping protocol names to descriptions.
+
+**Use Cases**:
+- Discovering specialized protocol scanners
+- Planning comprehensive security assessments
+- Understanding available data collection methods
+
+### Request Scan (request-scan)
+
+**Purpose**: Request Shodan to scan specific IP addresses or networks.
+
+**Parameters**:
+- \`ips\`: Comma-separated list of IPs or networks in CIDR notation
+
+**Usage Example**:
+\`\`\`
+request-scan:
+  ips: "8.8.8.8,1.1.1.1/24"
+\`\`\`
+
+**Output**: JSON with scan information and credits used.
+
+**Use Cases**:
+- On-demand scanning of systems
+- Validating security changes
+- Tracking new exposures in real-time
+- Investigating emerging threats
+
+### Get Scan Status (get-scan-status)
+
+**Purpose**: Check the status of a previously submitted scan.
+
+**Parameters**:
+- \`id\`: The unique scan ID returned by request-scan
+
+**Usage Example**:
+\`\`\`
+get-scan-status:
+  id: "xxxxxxx"
+\`\`\`
+
+**Output**: JSON with scan status information.
+
+**Use Cases**:
+- Tracking progress of on-demand scans
+- Verifying completion of scanning requests
+- Planning follow-up analysis
+
+### List Scans (list-scans)
+
+**Purpose**: Get a list of all submitted scans.
+
+**Parameters**: None required
+
+**Usage Example**:
+\`\`\`
+list-scans
+\`\`\`
+
+**Output**: JSON list of all scan requests and their statuses.
+
+**Use Cases**:
+- Managing scan operations
+- Reviewing scan history
+- Tracking scanning credits usage
+
+## Alerts Management Tools
+
+Shodan's alert tools allow you to monitor for changes to internet-facing assets.
+
+### List Triggers (list-triggers)
+
+**Purpose**: List available triggers for network alerts.
+
+**Parameters**: None required
+
+**Usage Example**:
+\`\`\`
+list-triggers
+\`\`\`
+
+**Output**: JSON list of trigger types and their descriptions.
+
+### Create Alert (create-alert)
+
+**Purpose**: Create a network alert for monitoring specific criteria.
+
+**Parameters**:
+- \`name\`: Name of the alert
+- \`filters\`: Object containing filters (IP addresses, ports)
+- \`expires\`: Optional number of seconds the alert should be active
+
+**Usage Example**:
+\`\`\`
+create-alert:
+  name: "Critical Infrastructure Monitoring"
+  filters: {"ip": ["8.8.8.8"], "port": [443, 80]}
+\`\`\`
+
+**Output**: JSON with alert information.
+
+### Get Alert Info (get-alert-info)
+
+**Purpose**: Get information about a specific alert.
+
+**Parameters**:
+- \`id\`: Alert ID to get information about
+
+**Usage Example**:
+\`\`\`
+get-alert-info:
+  id: "XXXXXXXX"
+\`\`\`
+
+**Output**: JSON with detailed alert information.
+
+### Delete Alert (delete-alert)
+
+**Purpose**: Delete a network alert.
+
+**Parameters**:
+- \`id\`: Alert ID to delete
+
+**Usage Example**:
+\`\`\`
+delete-alert:
+  id: "XXXXXXXX"
+\`\`\`
+
+**Output**: Confirmation of alert deletion.
+
+### Edit Alert (edit-alert)
+
+**Purpose**: Edit an existing alert.
+
+**Parameters**:
+- \`id\`: Alert ID to edit
+- \`name\`: Optional new name for the alert
+- \`filters\`: Optional new filters
+
+**Usage Example**:
+\`\`\`
+edit-alert:
+  id: "XXXXXXXX"
+  name: "Updated Critical Infrastructure Monitoring"
+  filters: {"ip": ["8.8.8.8", "8.8.4.4"], "port": [443, 80, 22]}
+\`\`\`
+
+**Output**: JSON with updated alert information.
+
+### List Alerts (list-alerts)
+
+**Purpose**: List all active alerts.
+
+**Parameters**: None required
+
+**Usage Example**:
+\`\`\`
+list-alerts
+\`\`\`
+
+**Output**: JSON list of all active alerts.
+
+## Account Tools
+
+### Get Profile (get-profile)
+
+**Purpose**: Get account profile information.
+
+**Parameters**: None required
+
+**Usage Example**:
+\`\`\`
+get-profile
+\`\`\`
+
+**Output**: JSON with account details.
+
+### Get API Info (get-api-info)
+
+**Purpose**: Get API subscription information.
+
+**Parameters**: None required
+
+**Usage Example**:
+\`\`\`
+get-api-info
+\`\`\`
+
+**Output**: JSON with API plan details and credits.
+
+### Get My IP (get-my-ip)
+
+**Purpose**: View your current IP address as seen by Shodan.
+
+**Parameters**: None required
+
+**Usage Example**:
+\`\`\`
+get-my-ip
+\`\`\`
+
+**Output**: JSON with your IP address.
+
+## Best Practices
+
+### Effective Searching
+
+1. **Use Specific Filters**: Combine multiple filters for precise results
+   \`\`\`
+   product:"Apache" port:443 country:DE
+   \`\`\`
+
+2. **Leverage Facets**: Use facets to understand result distributions
+   \`\`\`
+   search-host:
+     query: "nginx"
+     facets: "country,org,version"
+   \`\`\`
+
+3. **Validate Queries**: Use search-tokens to understand query interpretation
+
+### Credit Management
+
+1. **Use search-host-count**: For large queries, first get a count to understand scope
+2. **Optimize scan requests**: Group IPs/networks when possible
+3. **Monitor usage**: Regularly check your API info
+
+### Alert Management
+
+1. **Use Descriptive Names**: Name alerts clearly for easy management
+2. **Prioritize Critical Assets**: Focus monitoring on high-value systems
+3. **Set Appropriate Expirations**: Use the expires parameter for temporary monitoring
+
+## Conclusion
+
+Shodan tools provide powerful capabilities for discovering, analyzing, and monitoring internet-facing assets. By effectively using these tools, security professionals can identify vulnerabilities, track attack surfaces, and maintain awareness of their organization's exposure.
+
+For more information and advanced usage examples, visit [Shodan's official documentation](https://developer.shodan.io/api).`
+      }]
+    };
+  }
+);
+
+// Define VirusTotal tools resource
+server.resource(
+  "virustotal-tools-guide",
+  "guide://virustotal-tools",
+  {
+    name: "VirusTotal Tools Guide",
+    description: "Comprehensive guide on using VirusTotal tools within the ADEO CTI MCP Server"
+  },
+  async (uri) => {
+    return {
+      contents: [{
+        uri: uri.href,
+        mimeType: "text/markdown",
+        text: `# VirusTotal Tools Guide
+
+## Introduction
+
+This guide provides detailed information on using the VirusTotal tools available within the ADEO CTI MCP Server. VirusTotal is a platform that analyzes files, URLs, domains, and IP addresses for malicious content, integrating results from multiple security vendors and tools.
+
+## Available VirusTotal Tools
+
+### URL Analysis (virustotal-url-analysis)
+
+**Purpose**: Analyze a URL for security threats and malicious behavior.
+
+**Parameters**:
+- \`url\`: The URL to analyze (must be a valid URL)
+
+**Usage Example**:
+\`\`\`
+virustotal-url-analysis:
+  url: "https://example.com/suspicious-page"
+\`\`\`
+
+**Output**: Comprehensive analysis with detection results from multiple security vendors, categorization, and associated threat intelligence.
+
+**Key Information Returned**:
+- Detection ratios from security vendors
+- URL categories
+- First/last submission dates
+- Associated malware samples
+- Related URLs in the same infrastructure
+- Embedded content analysis
+- WHOIS data
+- SSL certificate information (if HTTPS)
+
+**Use Cases**:
+- Evaluating suspicious links from emails
+- Checking potentially malicious URLs found in logs
+- Verifying the legitimacy of download sources
+- Analyzing redirect chains for malware delivery
+
+### File Analysis (virustotal-file-analysis)
+
+**Purpose**: Analyze a file hash for malware and security threats.
+
+**Parameters**:
+- \`hash\`: MD5, SHA-1, or SHA-256 hash of the file to analyze
+
+**Usage Example**:
+\`\`\`
+virustotal-file-analysis:
+  hash: "44d88612fea8a8f36de82e1278abb02f"
+\`\`\`
+
+**Output**: Detailed analysis of the file including multi-engine antivirus scan results and behavior analysis.
+
+**Key Information Returned**:
+- Detection results from 70+ antivirus engines
+- File metadata and properties
+- Behavioral analysis and sandboxing results
+- YARA and SIGMA rule matches
+- Embedded resources and strings
+- Similar/related files
+- File reputation and first/last seen dates
+
+**Use Cases**:
+- Analyzing suspicious executables
+- Verifying the legitimacy of downloaded files
+- Investigating potential malware incidents
+- Threat intelligence enrichment for file indicators
+
+### IP Analysis (virustotal-ip-analysis)
+
+**Purpose**: Analyze an IP address for security threats and reputation.
+
+**Parameters**:
+- \`ip\`: IP address to analyze (must be a valid IPv4 or IPv6 address)
+
+**Usage Example**:
+\`\`\`
+virustotal-ip-analysis:
+  ip: "8.8.8.8"
+\`\`\`
+
+**Output**: Comprehensive IP intelligence including reputation data, associated domains, and security verdicts.
+
+**Key Information Returned**:
+- Detection ratios from security vendors
+- ASN and network information
+- Country and geolocation
+- Passive DNS (associated domains)
+- Historical reputation
+- Observed malicious URLs hosted
+- WHOIS data
+- Associated malware communications
+
+**Use Cases**:
+- Investigating suspicious network connections
+- Analyzing potential command & control servers
+- Understanding the reputation of IP addresses in logs
+- Enriching security alerts with threat intelligence
+
+### Domain Analysis (virustotal-domain-analysis)
+
+**Purpose**: Analyze a domain for security threats using VirusTotal's API.
+
+**Parameters**:
+- \`domain\`: Domain name to analyze (must be a valid domain name)
+
+**Usage Example**:
+\`\`\`
+virustotal-domain-analysis:
+  domain: "example.com"
+\`\`\`
+
+**Output**: Comprehensive domain intelligence including associated IPs, subdomains, and security verdicts.
+
+**Key Information Returned**:
+- Detection ratios from security vendors
+- Domain categories
+- WHOIS information and registration details
+- DNS records (A, MX, NS, CNAME, etc.)
+- Subdomains
+- SSL certificate information
+- Hosted URLs and their reputation
+- Historical resolution data
+
+**Use Cases**:
+- Analyzing potential phishing domains
+- Investigating suspicious domains in logs
+- Mapping malicious infrastructure
+- Evaluating domain reputation before connecting
+
+### YARA Rules (virustotal-yara-rules)
+
+**Purpose**: Access VirusTotal's library of YARA rules to understand detection patterns.
+
+**Parameters**:
+- \`action\`: Either "list" or "get"
+- \`rule_id\`: (Required for "get" action) ID of the specific rule to retrieve
+- \`cursor\`: (Optional for "list" action) Pagination cursor
+- \`limit\`: (Optional for "list" action) Number of rules to return per page (max 40)
+
+**Usage Example**:
+\`\`\`
+virustotal-yara-rules:
+  action: "list"
+  limit: 10
+\`\`\`
+
+**Output**: List of available YARA rules or detailed information about a specific rule.
+
+**Use Cases**:
+- Understanding detection methodologies
+- Developing custom detection rules
+- Researching malware families
+- Learning common malware patterns
+
+## Integration with Threat Hunting
+
+### Malware Campaign Analysis
+
+For comprehensive analysis of potential malware campaigns, VirusTotal tools can be combined with Shodan tools to provide a 360° view:
+
+1. Start with suspicious indicators (URLs, files, domains, or IPs)
+2. Use appropriate VirusTotal analysis tools to gather comprehensive threat intelligence
+3. Use Shodan tools to examine the hosting infrastructure
+4. Create alerts to monitor for changes in the infrastructure
+5. Document findings and potential connections between indicators
+
+### Domain and IP Reputation Framework
+
+Create a structured approach to evaluating domain/IP reputation:
+
+1. Use virustotal-domain-analysis or virustotal-ip-analysis to get security verdicts
+2. Examine detection ratios across vendors
+3. Review historical reputation data
+4. Check associated malicious indicators
+5. Use Shodan host-info to understand infrastructure setup
+6. Make risk-based decisions using combined intelligence
+
+## Best Practices
+
+### Effective Analysis
+
+1. **Context Matters**: Always consider the source and context of the indicator being analyzed
+2. **Cross-Reference**: Validate findings across multiple tools (VirusTotal and Shodan)
+3. **Look for Patterns**: Focus on connections between indicators rather than isolated verdicts
+4. **Check Timestamps**: Pay attention to first/last seen dates for historical context
+5. **Understand Detections**: Dive deeper into specific detection names to understand the threat type
+
+### Interpretation Guidelines
+
+1. **False Positives**: A small number of detections may indicate false positives
+2. **Generic Detections**: Look for specific malware family names rather than generic detections
+3. **Infrastructure Sharing**: Consider that legitimate services may share infrastructure with malicious ones
+4. **Age of Analysis**: Recent submissions may have fewer detections as engines update
+
+### Security Considerations
+
+1. **Sensitive Data**: Never submit sensitive data to VirusTotal (files may become publicly accessible)
+2. **API Key Protection**: Safeguard your VirusTotal API key
+3. **Rate Limits**: Be aware of API usage limits when automating requests
+4. **Result Caching**: Results may be cached; use the 'scan' endpoints for fresh analysis
+
+## Advanced Techniques
+
+### Correlation Analysis
+
+Strengthen your analysis by correlating data across tools:
+
+1. Use virustotal-domain-analysis to get associated IPs
+2. Check those IPs with virustotal-ip-analysis
+3. Use Shodan's host-info to examine services running on those IPs
+4. Look for patterns and connections across the infrastructure
+
+### Threat Intelligence Enrichment
+
+Enhance existing threat intelligence data:
+
+1. Add VirusTotal reputation scores to threat feeds
+2. Enrich IOCs with additional context from file/URL analysis
+3. Create severity ratings based on combined detection ratios
+4. Track infrastructure changes over time
+
+### Continuous Monitoring
+
+Implement an ongoing monitoring strategy:
+
+1. Regularly analyze critical domains and IPs
+2. Set up Shodan alerts for associated infrastructure
+3. Track detection ratio changes over time
+4. Monitor for new infrastructure associated with known threats
+
+## Conclusion
+
+VirusTotal tools provide powerful threat intelligence and analysis capabilities that complement Shodan's infrastructure visibility. By effectively combining these tools, security analysts can develop a comprehensive understanding of potential threats, make informed decisions, and enhance their organization's security posture.
+
+For more information on VirusTotal's capabilities, visit [VirusTotal's documentation](https://developers.virustotal.com/reference).`
+      }]
+    };
+  }
+);
+
+/**
  * Helper function to make API requests to Shodan
  * Handles authentication and error handling for all Shodan API calls
  * 
@@ -344,7 +1221,7 @@ server.tool(
  */
 server.tool(
   "hello",
-  "Test if the Shodan MCP server is working",
+  "Test if the ADEO CTI MCP server is working",
   {
     random_string: z.string().describe("Dummy parameter for no-parameter tools")
   },
@@ -2640,17 +3517,96 @@ server.tool(
 );
 
 /**
+ * Current Date Tool
+ * Returns the current date in various formats.
+ * Simple utility tool that's useful for timestamping operations,
+ * creating log entries, or any situation where the current date is needed.
+ */
+server.tool(
+  "current-date",
+  "Get the current date in various formats",
+  {
+    format: z.enum(["iso", "local", "utc"]).optional().describe("Date format: iso (ISO 8601), local (local format), utc (UTC string)")
+  },
+  async ({ format = "iso" }) => {
+    const now = new Date();
+    let formattedDate;
+    
+    switch (format) {
+      case "iso":
+        formattedDate = now.toISOString();
+        break;
+      case "local":
+        formattedDate = now.toLocaleDateString();
+        break;
+      case "utc":
+        formattedDate = now.toUTCString();
+        break;
+    }
+    
+    return {
+      content: [{
+        type: "text",
+        text: formattedDate
+      }]
+    };
+  }
+);
+
+/**
+ * Current Time Tool
+ * Returns the current time with various formatting options.
+ * Useful for timestamping, logging, and any operation
+ * where precise time information is needed.
+ */
+server.tool(
+  "current-time",
+  "Get the current time in various formats",
+  {
+    format: z.enum(["24h", "12h", "timestamp"]).optional().describe("Time format: 24h (24-hour format), 12h (12-hour format), timestamp (Unix timestamp)"),
+    include_seconds: z.boolean().optional().describe("Whether to include seconds in the output")
+  },
+  async ({ format = "24h", include_seconds = true }) => {
+    const now = new Date();
+    let formattedTime;
+    
+    switch (format) {
+      case "24h":
+        formattedTime = include_seconds 
+          ? now.toLocaleTimeString([], { hour12: false })
+          : now.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' });
+        break;
+      case "12h":
+        formattedTime = include_seconds
+          ? now.toLocaleTimeString([], { hour12: true })
+          : now.toLocaleTimeString([], { hour12: true, hour: '2-digit', minute: '2-digit' });
+        break;
+      case "timestamp":
+        formattedTime = Math.floor(now.getTime() / 1000).toString();
+        break;
+    }
+    
+    return {
+      content: [{
+        type: "text",
+        text: formattedTime
+      }]
+    };
+  }
+);
+
+/**
  * Main function to start the MCP server
  * Initializes the server with stdio transport for command-line interaction
  * This follows the MCP specification for server initialization and connection handling
  */
 async function main() {
-  console.error("🚀 Starting Shodan MCP Server...");
+  console.error("🚀 Starting ADEO CTI MCP Server...");
   
   const transport = new StdioServerTransport();
   await server.connect(transport);
   
-  console.error("✅ Shodan MCP Server connected and ready");
+  console.error("✅ ADEO CTI MCP Server connected and ready");
 }
 
 main().catch(error => {
